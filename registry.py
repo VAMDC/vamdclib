@@ -5,17 +5,17 @@
 routines for querying the registry
 
 """
+from settings import *
 
 REL_REG='http://registry.vamdc.eu/vamdc_registry/services/RegistryQueryv1_0'
 DEV_REG='http://casx019-zone1.ast.cam.ac.uk/registry/services/RegistryQueryv1_0'
 REL_REG='http://registry.vamdc.eu/registry-12.07/services/RegistryQueryv1_0'
-
-REGURL=DEV_REG
-WSDL=REGURL+'?wsdl'
-
-# this is a copy of the URL above but with
-# schema locations fixed:
-#WSDL = 'http://tmy.se/t/devreg_wsdl.xml'
+# use registry defined in settings if defined
+try:
+  WSDL = REGURL + '?wsdl'
+except:
+  REGURL = DEV_REG
+  WSDL = REGURL+'?wsdl'
 
 from suds.client import Client
 from suds.xsd.doctor import Doctor

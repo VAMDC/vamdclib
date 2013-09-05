@@ -8,9 +8,9 @@ import query as q
 import results 
 import nodes
 import specmodel
+from settings import *
 
-DATABASE_FILE = "cdms_sqlite.db"
-
+#DATABASE_FILE = "cdms_sqlite.db"
 
 class Database(object):
 

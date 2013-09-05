@@ -4,10 +4,8 @@ try:
 except:
     print "Suds package not available. Load Vamdc-Nodes from static file"
     from local_registry import *
-    
 import query as q
 import results as r
-#from xsamsobject import * 
         
 
 class Nodelist(object):
