@@ -1056,7 +1056,7 @@ class Database(object):
                     result.set_query(query)
                     result.do_query()
                     result.populate_model()
-                    insert_species_data(result.data['Molecules'], update = True)
+                    self.insert_species_data(result.data['Molecules'], node, update = True)
                     print " -- UPDATE DONE    -- "
                 else:
                     print " -- up to date"

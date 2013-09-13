@@ -34,6 +34,7 @@ class Result(object):
             print "Warning: this is not a query object"
 
     def do_query(self):
+        self.root = None
         self.get_xml(self.Source.Requesturl)
 
 
@@ -144,7 +145,7 @@ class Result(object):
         Populates classes of specmodel
         """
 
-        if not hasattr(self, 'root'):
+        if not hasattr(self, 'root') or self.root == None:
             self.root = ElementTree.fromstring(self.Xml)
         #    self.objectify()
 
