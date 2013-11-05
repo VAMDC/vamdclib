@@ -279,6 +279,24 @@ class Database(object):
         for row in rows:
             print "%-10s %-60s %20s %s" % (row[1], row[0], row[2], row[3])
 
+
+    ##********************************************************************
+    def delete_species(self, speciesid):
+        """
+        Deletes species stored in the database
+
+        speciesid: Id of the Specie
+        """
+        deleted_species = []
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT PF_Name FROM Partitionfunctions WHERE PF_SpeciesID = ?", (speciesid, ))
+        rows = cursor.fetchall()
+        for row in rows:
+            deleted_species.append(row[0])
+            cursor.execute("DELETE FROM Transitions WHERE T_Name = ?", (row[0], ))
+            cursor.execute("DELETE FROM Partitionfunctions WHERE PF_Name = ?", (row[0], ))
+        return deleted_species
+
     ##********************************************************************
     def insert_species_data(self, species, node, update=False):
         """
@@ -364,12 +382,16 @@ class Database(object):
             # if update is allowed then all entries in the database for the given species-id will be
             # deleted, and thus replaced by the new data
             if update:
-                cursor.execute("SELECT PF_Name FROM Partitionfunctions WHERE PF_SpeciesID = ?", (speciesid, ))
-                rows = cursor.fetchall()
-                for row in rows:
-                    names_black_list.remove(row[0])
-                    cursor.execute("DELETE FROM Transitions WHERE T_Name = ?", (row[0], ))
-                    cursor.execute("DELETE FROM Partitionfunctions WHERE PF_Name = ?", (row[0], ))
+                if speciesid is None:
+                    for sid in result.data['Molecules'].keys():
+                        deleted_species = self.delete_species(sid)
+                        for ds in deleted_species:
+                            names_black_list.remove(ds)
+                else:
+                    deleted_species = self.delete_species(speciesid)
+                    for ds in deleted_species:
+                        names_black_list.remove(ds)
+
             #------------------------------------------------------------------------------------------------------
             
             #------------------------------------------------------------------------------------------------------
@@ -412,24 +434,6 @@ class Database(object):
                     except Exception, e:
                             print "Error: %s", e
 
-                    t_name = "%s;%s;%s" % (formula, t_state, t_hfs)
-                    t_name = t_name.strip()
-                    # remove all blanks in the name
-                    t_name = t_name.replace(' ','')
-                    # check if name is in the list of forbidden names and add counter if so
-                    i = 1
-                    while t_name in names_black_list:
-                        t_name = "%s#%d" % (t_name.split('#')[0], i)
-                        i += 1
-                    # update list of distinct species names.
-                    if id in species_names:
-                        if not t_name in species_names[id]:
-                            species_names[id].append(t_name)
-                            num_transitions[t_name] = 0
-                    else:
-                        species_names[id] = [t_name]
-                        num_transitions[t_name] = 0
-
                     frequency = float(result.data['RadiativeTransitions'][trans].FrequencyValue)
                     try:
                         uncertainty = "%lf" % float(result.data['RadiativeTransitions'][trans].FrequencyAccuracy)
@@ -445,40 +449,75 @@ class Database(object):
                         print " -- Error statistical weight not available"
                         species_with_error.append(id)
                         continue
-                        
+
                     # Get nuclear spin isomer (ortho/para) if present
-                    #print "%s; %s" % (result.data['RadiativeTransitions'][trans].Id, upper_state.Id)
                     try:
                         nsiName = upper_state.NuclearSpinIsomerName
                     except AttributeError:
                         nsiName = None
 
-                    # Insert transition into database
-                    try:
-                        cursor.execute("""INSERT INTO Transitions (
-                        T_Name,
-                        T_Frequency,
-                        T_EinsteinA,
-                        T_Uncertainty,
-                        T_EnergyLower,
-                        T_UpperStateDegeneracy,
-                        T_HFS,
-                        T_UpperStateQuantumNumbers,
-                        T_LowerStateQuantumNumbers) VALUES
-                        (?, ?,?,?,?, ?,?, ?,?)""",
-                                       (t_name,
-                                        "%lf" % frequency,
-                                        "%g" % float(result.data['RadiativeTransitions'][trans].TransitionProbabilityA),
-                                        uncertainty, "%lf" % float(lower_state.StateEnergyValue),
-                                        weight,
-                                        #upper_state.QuantumNumbers.case,
-                                        t_hfs,
-                                        str(upper_state.QuantumNumbers.qn_string),
-                                        str(lower_state.QuantumNumbers.qn_string),
-                                        ))
-                        num_transitions[t_name] += 1
-                    except Exception, e:
-                        print "Transition has not been inserted:\n Error: %s" % e
+                    # if nuclear spin isomer is defined then two entries have to be generated
+                    if nsiName is not None and nsiName != '':
+                        nsinames = [nsiName, None]
+                        nsiStateOrigin = result.data['States']["%s" % upper_state.NuclearSpinIsomerLowestEnergy]
+                        nsiEnergyOffset = float(nsiStateOrigin.StateEnergyValue)
+                    else:
+                        nsinames = [None]
+
+                    for nsiName in nsinames:
+                        # create name 
+                        t_affix = ";".join([affix for affix in [t_hfs, nsiName] if affix is not None and affix!=''])
+
+                        t_name = "%s;%s;%s" % (formula, t_state, t_affix)
+                        t_name = t_name.strip()
+                        # remove all blanks in the name
+                        t_name = t_name.replace(' ','')
+                        # check if name is in the list of forbidden names and add counter if so
+                        i = 1
+                        while t_name in names_black_list:
+                            t_name = "%s#%d" % (t_name.split('#')[0], i)
+                            i += 1
+                        # update list of distinct species names.
+                        if id in species_names:
+                            if not t_name in species_names[id]:
+                                species_names[id].append(t_name)
+                                num_transitions[t_name] = 0
+                        else:
+                            species_names[id] = [t_name]
+                            num_transitions[t_name] = 0
+
+                        if nsiName is not None:
+                            lowerStateEnergy = float(lower_state.StateEnergyValue) - nsiEnergyOffset
+                        else:
+                            lowerStateEnergy = float(lower_state.StateEnergyValue)
+                            
+                        
+                        # Insert transition into database
+                        try:
+                            cursor.execute("""INSERT INTO Transitions (
+                            T_Name,
+                            T_Frequency,
+                            T_EinsteinA,
+                            T_Uncertainty,
+                            T_EnergyLower,
+                            T_UpperStateDegeneracy,
+                            T_HFS,
+                            T_UpperStateQuantumNumbers,
+                            T_LowerStateQuantumNumbers) VALUES
+                            (?, ?,?,?,?, ?,?, ?,?)""",
+                                           (t_name,
+                                            "%lf" % frequency,
+                                            "%g" % float(result.data['RadiativeTransitions'][trans].TransitionProbabilityA),
+                                            uncertainty, "%lf" % lowerStateEnergy,
+                                            weight,
+                                            #upper_state.QuantumNumbers.case,
+                                            t_hfs,
+                                            str(upper_state.QuantumNumbers.qn_string),
+                                            str(lower_state.QuantumNumbers.qn_string),
+                                            ))
+                            num_transitions[t_name] += 1
+                        except Exception, e:
+                            print "Transition has not been inserted:\n Error: %s" % e
             print "\n"
             #------------------------------------------------------------------------------------------------------
 
@@ -508,18 +547,28 @@ class Database(object):
                 if id in species_with_error:
                     continue
                 for name in species_names[id]:
+                    # determine hyperfine-structure affix and nuclear spin isomer affix
                     try:
-                        hfs = name_array = name.split(';')[2].strip()
+                        hfs = ''
+                        nsi = ''
+                        for affix in name.split("#")[0].split(';',2)[2].split(";"):
+                            if affix.strip()[:3] == 'hyp':
+                                hfs = affix.strip()
+                            else:
+                                # if affix does not identify hyperfine structure
+                                # it identifies the nuclear spin isomer
+                                nsi = affix.strip()
                     except:
                         hfs = ''
 
                     # Insert row in partitionfunctions
                     try:
-                        cursor.execute("INSERT INTO Partitionfunctions (PF_Name, PF_SpeciesID, PF_VamdcSpeciesID, PF_HFS, PF_Comment, PF_ResourceID, PF_URL, PF_Timestamp) VALUES (?,?,?,?,?,?,?,?)",
+                        cursor.execute("INSERT INTO Partitionfunctions (PF_Name, PF_SpeciesID, PF_VamdcSpeciesID, PF_HFS, PF_NuclearSpinIsomer, PF_Comment, PF_ResourceID, PF_URL, PF_Timestamp) VALUES (?,?,?,?,?,?,?,?,?)",
                                        ("%s" % name,
                                         id,
                                         "%s" % (result.data['Molecules'][id].VAMDCSpeciesID),
                                         hfs,
+                                        nsi, 
                                         "%s" % (result.data['Molecules'][id].Comment),
                                         resourceID,
                                         "%s%s%s" % (url, "sync?LANG=VSS2&amp;REQUEST=doQuery&amp;FORMAT=XSAMS&amp;QUERY=Select+*+where+SpeciesID%3D", id),
@@ -533,17 +582,20 @@ class Database(object):
                 # Update Partitionfunctions
                 try:
                     for pfs in result.data['Molecules'][id].PartitionFunction:
-                        if not pfs.__dict__.has_key('NuclearSpinIsomer') or pfs.NuclearSpinIsomer == '':
-                            for temperature in pfs.values.keys():
+                        if not pfs.__dict__.has_key('NuclearSpinIsomer'):
+                            nsi = ''
+                        else:
+                            nsi = pfs.NuclearSpinIsomer  
+                        for temperature in pfs.values.keys():
 
-                                try:
-                                    field = ("PF_%.3lf" % float(temperature)).replace('.', '_')
-                                    sql = "UPDATE Partitionfunctions SET %s=? WHERE PF_SpeciesID=?" % field
-                                    cursor.execute(sql, (pfs.values[temperature], id))
-                                except Exception, e:
-                                    print "SQL-Error: %s " % sql
-                                    print pfs.values[temperature], id
-                                    print "Error: %d: %s" % (e.args[0], e.args[1])
+                            try:
+                                field = ("PF_%.3lf" % float(temperature)).replace('.', '_')
+                                sql = "UPDATE Partitionfunctions SET %s=? WHERE PF_SpeciesID=? AND IFNULL(PF_NuclearSpinIsomer,'')=?" % field
+                                cursor.execute(sql, (pfs.values[temperature], id, nsi))
+                            except Exception, e:
+                                print "SQL-Error: %s " % sql
+                                print pfs.values[temperature], id
+                                print "Error: %d: %s" % (e.args[0], e.args[1])
                 except:
                     pass
             #------------------------------------------------------------------------------------------------------
