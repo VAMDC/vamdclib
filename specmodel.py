@@ -47,9 +47,32 @@ STATES_DICT = {
     "QuantumNumbers":"Case\\QuantumNumbers",
     }
 
+ATOMIC_STATES_DICT = {
+    "Id":"@stateID",
+    "StateID":"@stateID",
+    "StateEnergyValue":"AtomicNumericalData.StateEnergy.Value",
+    "StateEnergyUnit":"AtomicNumericalData.StateEnergy.Value.@units",
+    "TotalStatisticalWeight":"AtomicNumericalData.StatisticalWeight",
+#    "QuantumNumbers:J":"AtomicQuantumNumbers.TotalAngularMomentum",
+#    "QuantumNumbers:F":"AtomicQuantumNumbers.HyperfineMomentum",
+#    "QuantumNumbers:L":"AtomicComposition.Component.Term.LS.L.Value",
+#    "QuantumNumbers:S":"AtomicComposition.Component.Term.LS.S",
+#    "QuantumNumbers":"Case\\QuantumNumbers",
+    "QuantumNumbers":"\\AtomQN",
+    }
+
+ATOMQN_DICT = {
+    "Id":"@stateID",
+    "qn_dict:J":"AtomicQuantumNumbers.TotalAngularMomentum",
+    "qn_dict:F":"AtomicQuantumNumbers.HyperfineMomentum",
+    "qn_dict:L":"AtomicComposition.Component.Term.LS.L.Value",
+    "qn_dict:S":"AtomicComposition.Component.Term.LS.S",
+}
+
 ATOMS_DICT = {
     "Id":"Isotope.Ion.@speciesID",
     "SpeciesID":"Isotope.Ion.@speciesID",
+    "VAMDCSpeciesID":"Isotope.Ion.InChIKey",
     "ChemicalElementNuclearCharge":"ChemicalElement.NuclearCharge",
     "ChemicalElementSymbol":"ChemicalElement.ElementSymbol",
     "MassNumber":"Isotope.IsotopeParameters.MassNumber",
@@ -57,6 +80,8 @@ ATOMS_DICT = {
     "MassUnit":"Isotope.IsotopeParameters.Mass.Value.@units",
     "IonCharge":"Isotope.Ion.IonCharge",
     "InChIKey":"Isotope.Ion.InChIKey",
+    "Comment":"Isotope.Comments",
+    "States":"Isotope.Ion.AtomicState[]\\AtomState",
     }
 
 MOLECULES_DICT = {
@@ -307,6 +332,14 @@ def isVibrationalStateLabel(label):
     except ValueError:
         return False
 
+def atomqn__init__(self, xml):
+    """
+    """
+    Model.__init__(self, xml)
+    # Create a string represantative of the quantum numbers.
+    self.qn_string = ""
+    for qn in self.qn_dict:
+        self.qn_string += "%s = %s; " % (str(qn),str(self.qn_dict[qn]))
 
 #################################################################
 # Dictionary to Control Generation of Model- and Dictionary -
@@ -336,10 +369,22 @@ DICT_MODELS = {
                     ],
          'representation_fields':('StateID', 'StateEnergyValue', 'StateEnergyUnit'),
          },
+        {'Name':'AtomState',
+         'Dictionary':ATOMIC_STATES_DICT,
+         'init_functions':None,
+         'representation_fields':('StateID', 'StateEnergyValue', 'StateEnergyUnit'),
+         },        
+        {'Name':'AtomQN',
+         'Dictionary':ATOMQN_DICT,
+         'init_functions':None,
+         'methods':[{'name':'__init__',
+                     'method':atomqn__init__},
+                    ],
+         },        
         {'Name':'QuantumNumbers',
          'Dictionary':QUANTUMNUMBERS_DICT,
          'init_functions':None,
-         'representation_fields':('SpeciesID', 'PartitionFunctionT'),
+#         'representation_fields':('SpeciesID', 'PartitionFunctionT'),
          'methods':[{'name':'__init__',
                      'method':quantumnumbers__init__},
                     {'name':'parse_qn',
@@ -430,6 +475,11 @@ def populate_models(xml, add_states=False):
             for state in data['Molecules'][SpeciesID].States:
                 state.SpeciesID = SpeciesID
                 data['States'][state.StateID] = state
+
+        for SpeciesID in data['Atoms']:
+            for state in data['Atoms'][SpeciesID].States:
+                state.SpeciesID = SpeciesID
+                data['States'][state.StateID] = state
             
     return data
     
@@ -440,7 +490,7 @@ def calculate_partitionfunction(states, temperature = 300.0):
     distinct_list = {}
     # create a distinct list of states
     for state in states:
-        id = states[state].SpecieID
+        id = states[state].SpeciesID
         qn_string = states[state].QuantumNumbers.qn_string
         
         if not id in distinct_list:
@@ -450,7 +500,7 @@ def calculate_partitionfunction(states, temperature = 300.0):
     for specie in distinct_list:
         pfs[specie] = 0
         for state in distinct_list[specie]:
-            pfs[specie] += int(distinct_list[specie][state].TotalStatisticalWeight) * numpy.exp(-1.43878*distinct_list[specie][state].StateEnergyValue/temperature)
+            pfs[specie] += int(distinct_list[specie][state].TotalStatisticalWeight) * numpy.exp(-1.43878*float(distinct_list[specie][state].StateEnergyValue)/temperature)
             
 
     return pfs

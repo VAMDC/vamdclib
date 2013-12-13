@@ -85,7 +85,10 @@ def construct_model(dictionary):
             
         for tag in path_array:
             # is an attribute
-            if tag[0] == '@':
+
+            if len(tag) == 0:
+                pass
+            elif tag[0] == '@':
                 code_add = "get('%s')" % (tag[1:],)
                 # attribute can only at the last position
                 break
@@ -163,10 +166,22 @@ class Model(object):
             self.readXML(self.xml)
     
     def additem(self, item, value):
-        try:
-            setattr(self, item, value)
-        except:
-            pass
+        """
+        Adds a new element to the model. If the element name
+        contains a colon then a dictionary based on the value
+        preding the colon is created and the value is stored
+        in this dictionary
+        """
+        if item.find(":") == -1:
+            try:
+                setattr(self, item, value)
+            except:
+                pass
+        else:
+            item_dict, item = item.split(":")
+            if not self.__dict__.has_key(item_dict):
+                setattr(self, item_dict, {})
+            self.__dict__[item_dict][item] = value
 
     def readXML(self, xml):
         for item in self.DICT:
