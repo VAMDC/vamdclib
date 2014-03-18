@@ -80,6 +80,7 @@ ATOMS_DICT = {
     "MassUnit":"Isotope.IsotopeParameters.Mass.Value.@units",
     "IonCharge":"Isotope.Ion.IonCharge",
     "InChIKey":"Isotope.Ion.InChIKey",
+    "InChI":"Isotope.Ion.InChI",
     "Comment":"Isotope.Comments",
     "States":"Isotope.Ion.AtomicState[]\\AtomState",
     }

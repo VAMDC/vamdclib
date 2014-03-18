@@ -5,7 +5,8 @@ REGURL='http://casx019-zone1.ast.cam.ac.uk/registry/services/RegistryQueryv1_0'
 
 # sqlite3 database file
 #DATABASE_FILE = "cdms_sqlite.db"
-DATABASE_FILE = "/home/endres/Projects/vamdctools/ClientTools/python/cdms_sqlite.db"
+DATABASE_FILE = "/var/www/static/cdms/cdms_lite/cdms_lite.db"
 
+#DATABASE_FILE = "/var/www/static/cdms/cdms_lite/cdms_lite_private.db"
 # Timeout for queries
 TIMEOUT = 30
