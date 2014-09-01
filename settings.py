@@ -2,7 +2,7 @@
 
 # url where vamdc-database-nodes are registered
 REGURL='http://casx019-zone1.ast.cam.ac.uk/registry/services/RegistryQueryv1_0'
-
+#REGURL='http://msslkr.phys.ucl.ac.uk/registry-12.07/services/RegistryQueryv1_0'
 # sqlite3 database file
 #DATABASE_FILE = "cdms_sqlite.db"
 DATABASE_FILE = "/var/www/static/cdms/cdms_lite/cdms_lite.db"

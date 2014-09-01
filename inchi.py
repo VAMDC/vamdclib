@@ -369,7 +369,7 @@ class InChI:
             charge_str = "-"
        
         if abs(self.charge) > 1:
-            charge_str += "%d" % abs(charge)
+            charge_str += "%d" % abs(self.charge)
         
         # create dictionary with number of each atom
         dict_atom_count = {}

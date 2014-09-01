@@ -80,7 +80,7 @@ class Request(object):
                                                                      urllib2.quote(self.query.Query))
         
 
-    def dorequest(self, timeout = TIMEOUT):
+    def dorequest(self, timeout = TIMEOUT, HttpMethod = "POST"):
 
         self.xml = None
         #self.get_xml(self.Source.Requesturl)
@@ -88,7 +88,7 @@ class Request(object):
         urlobj = urlsplit(url)
         
         conn = HTTPConnection(urlobj.netloc, timeout = timeout)
-        conn.putrequest("POST", urlobj.path+"?"+urlobj.query)
+        conn.putrequest(HttpMethod, urlobj.path+"?"+urlobj.query)
         conn.endheaders()
         
         try:
@@ -108,6 +108,9 @@ class Request(object):
             result = r.Result()
             result.Xml = self.xml
             result.populate_model()
+        elif res.status == 400 and HttpMethod == 'POST':
+            # Try to use http-method: GET
+            result = self.dorequest( HttpMethod = 'GET')
         else:
             result = None
 

@@ -14,7 +14,7 @@ REL_REG='http://registry.vamdc.eu/registry-12.07/services/RegistryQueryv1_0'
 try:
   WSDL = REGURL + '?wsdl'
 except:
-  REGURL = DEV_REG
+  REGURL = REL_REG
   WSDL = REGURL+'?wsdl'
 
 from suds.client import Client
