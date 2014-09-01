@@ -228,7 +228,7 @@ def _construct_class(model_definitions, module = None):
             retval = ""
             for field in model_definitions['representation_fields']:
                 try:
-                    retval += "%s " % self.__dict__[field]
+                    retval += "%r " % self.__dict__[field]
                 except KeyError:
                     retval += "None "
             return retval

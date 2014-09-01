@@ -37,7 +37,7 @@ class Request(object):
             self.setnode(node)
             
         if query != None:
-            self.set_query(query)
+            self.setquery(query)
 
     def setnode(self, node):
         self.status = 0
@@ -47,14 +47,22 @@ class Request(object):
             self.node = node
             
             if not hasattr(self.node,'url') or len(self.node.url)==0:
-                print "Warning: Url of this node is empty!"
+#                print "Warning: Url of this node is empty!"
+                pass
             else:
                 self.baseurl = self.node.url
                 if self.baseurl[-1]=='/':
                     self.baseurl+='sync?'
                 else:
                     self.baseurl+='/sync?'
-        
+
+    def setbaseurl(self, baseurl):
+        self.baseurl = baseurl
+        if self.baseurl[-1]=='/':
+            self.baseurl+='sync?'
+        else:
+            self.baseurl+='/sync?'
+
     def setquery(self,query):
         self.status = 0
         self.reason = "INIT"
@@ -66,8 +74,9 @@ class Request(object):
             self.query = q.Query(Query = query)
             self.setquerypath()
         else:
-            print type(query)
-            print "Warning: this is not a query object"
+#            print type(query)
+#            print "Warning: this is not a query object"
+            pass
         
 
     def setquerypath(self):
@@ -80,7 +89,7 @@ class Request(object):
                                                                      urllib2.quote(self.query.Query))
         
 
-    def dorequest(self, timeout = TIMEOUT, HttpMethod = "POST"):
+    def dorequest(self, timeout = TIMEOUT, HttpMethod = "POST", parsexsams = True):
 
         self.xml = None
         #self.get_xml(self.Source.Requesturl)
@@ -101,21 +110,30 @@ class Request(object):
 
         self.status = res.status
         self.reason = res.reason
-        
-        if res.status == 200:
-            self.xml = res.read()
 
-            result = r.Result()
-            result.Xml = self.xml
-            result.populate_model()
-        elif res.status == 400 and HttpMethod == 'POST':
-            # Try to use http-method: GET
-            result = self.dorequest( HttpMethod = 'GET')
+        if not parsexsams:
+            if res.status == 200:
+                result = r.Result()
+                result.Content = res.read()
+            elif res.status == 400 and HttpMethod == 'POST':
+                # Try to use http-method: GET
+                result = self.dorequest( HttpMethod = 'GET', parsexsams = parsexsams)
+            else:
+                result = None
         else:
-            result = None
+            if res.status == 200:
+                self.xml = res.read()
+
+                result = r.Result()
+                result.Xml = self.xml
+                result.populate_model()
+            elif res.status == 400 and HttpMethod == 'POST':
+                # Try to use http-method: GET
+                result = self.dorequest( HttpMethod = 'GET', parsexsams = parsexsams)
+            else:
+                result = None
 
         return result
-        
 
     def doheadrequest(self, timeout = TIMEOUT):
         """
@@ -174,7 +192,6 @@ class Request(object):
                             ("vamdc-approx-size",0),
                             ("vamdc-count-radiative",0),
                             ("vamdc-count-atoms",0)]
-            
 
     def getlastmodified(self):
 
@@ -192,7 +209,6 @@ class Request(object):
 
         return self.lastmodified
 
-        
     def getspecies(self):
         """
         Queries species of the node and returns the result with already
@@ -203,8 +219,8 @@ class Request(object):
         self.setquery(querystring)
         result = self.dorequest()
         #result.populate_model()
-        
+
         return result
 
 
-   
+

@@ -449,9 +449,9 @@ DICT_MODELS = {
         {'Name':'CollisionalTransitions',
          'Dictionary':{"CollisionalTransitions":"Processes.Collisions.CollisionalTransition[]\\self"},
          'Type':'CollisionalTransition'},
-#        {'Name':'Sources',
-#         'Dictionary':{"Sources":"Sources.Source[]\\self"},
-#         'Type':'Source'},
+        {'Name':'Sources',
+         'Dictionary':{"Sources":"Sources.Source[]\\self"},
+         'Type':'Source'},
         ]
     }
 
