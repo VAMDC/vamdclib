@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+This module defines classes which define and perform requests to individual VAMDC database nodes. An instance of type result.Result is returned
+if a request has been performed.
+"""
+
 try:
     from lxml import objectify
     is_available_xml_objectify = True
@@ -27,9 +32,16 @@ class TimeOutError(HTTPException):
         
         
 class Request(object):
-
+    """
+    A Request instance represents one request to a specified VAMDC database node. 
+    """
     def __init__(self, node = None, query = None):
+        """
+        Initialize a request instance. 
 
+        node: Database-Node to which the request will be sent
+        query: Query which will be performed on the database.
+        """
         self.status = 0
         self.reason = "INIT"
 
@@ -40,6 +52,11 @@ class Request(object):
             self.setquery(query)
 
     def setnode(self, node):
+        """
+        Sets the node to which the request will be sent. If the node has not been specified already during the
+        initialization of the instance, it has to be specified before the request will be performed in order to 
+        obtain the Base-Url of the database node. Alternatively, the Base-Url can be set directly with the method 'setbaseurl'
+        """
         self.status = 0
         self.reason = "INIT"
 
@@ -57,29 +74,38 @@ class Request(object):
                     self.baseurl+='/sync?'
 
     def setbaseurl(self, baseurl):
+        """
+        Sets the Base-Url to which the query will be sent. Usually this method is called internally via the method 'setnode' and
+        is only called if requests shall be sent to nodes which are not registered in the VAMDC registry.
+        
+        """
         self.baseurl = baseurl
         if self.baseurl[-1]=='/':
             self.baseurl+='sync?'
         else:
             self.baseurl+='/sync?'
 
-    def setquery(self,query):
+    def setquery(self, query):
+        """
+        Sets the query which shall be defined on the database node. Query could ether be a query.Query instance
+        or a string. The query has to be specified before the request can be performed.
+        """
         self.status = 0
         self.reason = "INIT"
         
         if type(query)==q.Query:
             self.query = query
-            self.setquerypath()
+            self.__setquerypath()
         elif type(query) == str or type(query) == unicode:
             self.query = q.Query(Query = query)
-            self.setquerypath()
+            self.__setquerypath()
         else:
 #            print type(query)
 #            print "Warning: this is not a query object"
             pass
         
 
-    def setquerypath(self):
+    def __setquerypath(self):
         """
         Sets the querypath which is appended to the nodes 'base'-url.
         """
@@ -90,7 +116,13 @@ class Request(object):
         
 
     def dorequest(self, timeout = TIMEOUT, HttpMethod = "POST", parsexsams = True):
-
+        """
+        Sends the request to the database node and returns a result.Result instance. The
+        request uses 'POST' requests by default. If the request fails or if stated in the parameter 'HttpMethod',
+        'GET' requests will be performed. 
+        The returned result will be parsed by default and the model defined in 'specmodel' will be populated by default 
+        (parseexams = True).
+        """
         self.xml = None
         #self.get_xml(self.Source.Requesturl)
         url = self.baseurl + self.querypath
@@ -137,8 +169,8 @@ class Request(object):
 
     def doheadrequest(self, timeout = TIMEOUT):
         """
-        Does a HEAD request on the given url.
-        A list of 'vamdc' - statistic objects is returned
+        Sends a HEAD request to the database node. The header returned by the database node contains some
+        information on statistics. This information is stored in the headers object of the request instance.
         """
 
         self.headers = {}
@@ -194,7 +226,10 @@ class Request(object):
                             ("vamdc-count-atoms",0)]
 
     def getlastmodified(self):
-
+        """
+        Returns the 'last-modified' date which has been specified in the
+        Header of the requested document.
+        """
         if not self.status == 200:
             self.doheadrequest()
 
@@ -211,14 +246,14 @@ class Request(object):
 
     def getspecies(self):
         """
-        Queries species of the node and returns the result with already
-        populated data model.
+        Requests all species of the database node and returns a result.Result instance which contains the inforation
+        in the format specified by the model (specmodel.py).
+        This is equal to sending a 'SELECT SPECIES' - query to the node.
         """
 
         querystring = "SELECT SPECIES WHERE ((InchiKey!='UGFAIRIUMAVXCW'))"
         self.setquery(querystring)
         result = self.dorequest()
-        #result.populate_model()
 
         return result
 

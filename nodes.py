@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+This module defines classes and methods to manage data associated with VAMDC nodes. It provides
+functionality to retrieve a list of registered VAMDC nodes and to handle data such as urls of these
+nodes.
+"""
+
 try:
     from registry import *
 except:
@@ -14,13 +20,17 @@ class Nodelist(object):
     which are related to a list of nodes.
     """
     def __init__(self):
+        """
+        An instance of Nodelist contains a list of registered VAMDC nodes. This list is retrieved
+        via querying the VAMDC registry by default during initialization of the instance.
+        """
         self.nodes = []
         for node in getNodeList():
             self.nodes.append(Node(node['name'], url=node['url'], identifier = node['identifier']))
 
     def __repr__(self):
         """
-        Prints out a list of node names
+        Returns a string which contains a list of all VAMDC node names
         """
         returnstring = ""
         for node in self.nodes:
@@ -30,17 +40,42 @@ class Nodelist(object):
 
     def getnode(self, identifier):
         """
-        Return node instance for the given identifier
+        Return a nodes.Node instance for the given ivo-identifier. 
         """
         for node in self.nodes:
             if node.identifier == identifier:
                 return node
         return None
-    
+   
+    def findnode(self, searchstring):
+        """
+        This method tries to identify a VAMDC node by the specified 'searchstring'. It will return
+        a instance of nodes.Node if the node could be uniquely identified. Otherwise it will print out all
+        nodes which match the searchstring.
+
+        :param str searchstring: The string which looked for in the nodes name and ivo-identifier
+
+        :return: The node or a list of nodes which matches the searchstring.
+        :rtype: nodes.Node
+        """
+        nodes_match = []
+        for node in self.nodes:
+           if searchstring in node.identifier or searchstring in node.name:
+               nodes_match.append(node)
+        if len(nodes_match) == 1:
+           return nodes_match[0]
+        else:
+           return nodes_match
+         
+ 
 class Node(object):
     """
     This class contains informations and methods associated with one (VAMDC) database node,
     such as its access url (for database queries) and its name.    
+
+    :ivar name: Name of the VAMDC node
+    :ivar url: Url of the VAMDC node 
+    :ivar identifier: IVO-Identifier of the Node
     """
     def __init__(self, name, url=None, identifier = None):
         self.name=name
@@ -83,7 +118,7 @@ class Node(object):
 
     def print_species(self):
         """
-        prints out the list of species if they can be accessed with a SELECT SPECIES - Query
+        prints out the list of species to stdout if they can be accessed with a SELECT SPECIES - Query
         """
 
         if not (hasattr(self, 'Atoms') or hasattr(self, 'Molecules')):

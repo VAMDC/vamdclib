@@ -17,7 +17,12 @@ Temperatures = [1.072, 1.148, 1.230, 1.318, 1.413, 1.514, 1.622, 1.738, 1.862, 1
 #DATABASE_FILE = "cdms_sqlite.db"
 ##========================================================================
 class Database(object):
+    """
+    An instance of Database contains methods to store data obtained from VAMDC nodes
+    in an sqlite database.
 
+    :ivar conn: connection handler to the sqlite database
+    """
     ##********************************************************************
     def __init__(self, database_file = DATABASE_FILE):
         """

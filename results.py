@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+This module contains classes and methods to handle and process the result obtained
+by a VAMDC request.
+"""
+
 try:
     from lxml import objectify
     is_available_xml_objectify = True
@@ -18,9 +23,21 @@ from dateutil.parser import parse
 XSD = "http://vamdc.org/xml/xsams/1.0"
 
 class Result(object):
+    """
+    An Result instance contains the data returned by querying a VAMDC database node (XSAMS - Document).
 
+   :ivar Source: Source
+   :ivar Xml: XSAMS - Document (XML) as string as it is returned by the node. 
+   :ivar root: XSAMS document in an objectified structure (lxml.objectify)
+    """
     def __init__(self, xml=None, source=None):
+        """
+        Result instances contain the data returned by a request send to a VAMDC node (XSAMS-Document) and provide
+        methods to process this data in various ways (Validation, Parse the data and store it in table-like objects) 
 
+        :param str xml: XSAMS-String of the document
+        :param str source: ???
+        """
         self.Source = source
         self.Xml = xml
         
@@ -29,7 +46,8 @@ class Result(object):
 
     def objectify(self):
         """
-        Takes a xml source an returns it as an object
+        Parses the XML string and generates an objectified structure of the document, which
+        is stored in the variable root. 
     
         The source can be any of the following:
     
@@ -111,11 +129,10 @@ class Result(object):
         Applys a stylesheet to the xml object and returns
         the result as string.
 
-        xslt = url / file which contains the stylesheet
+        :param xslt: url or file which contains the stylesheet
 
-        returns:
-
-        String (the result of the operation)
+        :return: the output string of the operation
+        :rtype: str
         """
         # To be implemented
         pass
