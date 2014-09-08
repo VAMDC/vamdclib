@@ -11,7 +11,7 @@ except:
     print "Suds package not available. Load Vamdc-Nodes from static file"
     from local_registry import *
 import query as q
-import results as r
+import request as r
         
 
 class Nodelist(object):
@@ -100,12 +100,11 @@ class Node(object):
         # others do not understand the query SELECT SPECIES
         # therefore the following query is a small workaround for some nodes
         query=q.Query("SELECT SPECIES WHERE ((InchiKey!='UGFAIRIUMAVXCW'))")                
-        query.set_node(self)
 
-        result = r.Result()
-        result.set_query(query)
-        result.do_query()
-        result.populate_model()
+        req = r.Request()
+        req.setnode(self)
+        req.setquery(query)
+        result = req.dorequest()
         
         try:
             self.Molecules = result.data['Molecules']
