@@ -239,11 +239,18 @@ class Database(object):
 
             try:
                 changedate = request.getlastmodified()
-            except timeout:
+            except r.TimeOutError:
                 print "TIMEOUT"
-            except Exception, e:
-                print "Error in getlastmodified: %s " % e.strerror
+                continue
+            except r.NoContentError:
+                print "ENTRY OUTDATED" 
                 changedate = None
+                continue
+            except Exception, e:
+                print "Error in getlastmodified: %s " % str(e)
+                print "Status - code: %s" % str(request.status)
+                changedate = None
+                continue
 
             tstamp = parser.parse(row[3] + " GMT")
             if changedate is None:
@@ -661,7 +668,7 @@ class Database(object):
             cursor.close()
 
     ##********************************************************************
-    def update_database(self, add_nodes = None, insert_only = False, update_only = False):
+    def update_database(self, add_nodes = None, insert_only = False, update_only = False, delete_archived = False):
         """
         Checks if there are updates available for all entries. Updates will
         be retrieved from the resource specified in the database.
@@ -730,9 +737,22 @@ class Database(object):
                 errorcode = None
                 try:
                     changedate = request.getlastmodified()
-#                except r.TimeOutError, e:
+                except r.NoContentError, e:
+                    # Delete entries which are not available anymore
+                    if request.status == 204:
+                        if delete_archived:
+                            print " -- ENTRY ARCHIVED AND WILL BE DELETED -- "
+                            self.delete_species(speciesid)
+                        else:
+                            print " -- ENTRY ARCHIVED -- "
+                        continue
+
+                except r.TimeOutError, e:
 #                    errorcode = e.strerror
 #                    changedate = None
+                    print " -- TIMEOUT: Could not check entry -- "
+                    continue
+
                 except Exception, e:
                     errorcode = e.strerror
                     changedate = None
