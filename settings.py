@@ -9,4 +9,4 @@ DATABASE_FILE = "/var/www/static/cdms/cdms_lite/cdms_lite.db"
 
 #DATABASE_FILE = "/var/www/static/cdms/cdms_lite/cdms_lite_private.db"
 # Timeout for queries
-TIMEOUT = 30
+TIMEOUT = 100

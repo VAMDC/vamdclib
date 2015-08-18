@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import sys
 import sqlite3
 from datetime import datetime
 from dateutil import parser
@@ -316,6 +317,10 @@ class Database(object):
             deleted_species.append(row[0])
             cursor.execute("DELETE FROM Transitions WHERE T_Name = ?", (row[0], ))
             cursor.execute("DELETE FROM Partitionfunctions WHERE PF_Name = ?", (row[0], ))
+
+        self.conn.commit()
+        cursor.close()
+
         return deleted_species
 
     ##********************************************************************
@@ -742,7 +747,9 @@ class Database(object):
                     if request.status == 204:
                         if delete_archived:
                             print " -- ENTRY ARCHIVED AND WILL BE DELETED -- "
-                            self.delete_species(speciesid)
+                            del_specie = self.delete_species(row[1])
+                            if len(del_specie) > 0:
+                                print "\r Done"
                         else:
                             print " -- ENTRY ARCHIVED -- "
                         continue
@@ -753,9 +760,10 @@ class Database(object):
                     print " -- TIMEOUT: Could not check entry -- "
                     continue
 
-                except Exception, e:
-                    errorcode = e.strerror
+                except:
                     changedate = None
+                    print "Could not retrieve information - Unexpected error:", sys.exc_info()[0]
+                    continue
 
                 tstamp = parser.parse(row[3] + " GMT")
                 if changedate is None:
