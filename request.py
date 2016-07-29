@@ -29,7 +29,11 @@ class TimeOutError(HTTPException):
     def __init__(self):
         HTTPException.__init__(self, 408, "Timeout")
         self.strerror = "Timeout"
-        
+
+class NoContentError(Exception):
+    def __init__(self, expr):
+        self.expr = expr
+        self.msg = "No content to perform operation on"
         
 class Request(object):
     """
@@ -193,10 +197,9 @@ class Request(object):
         self.reason = res.reason
 
         if res.status == 200:
-            for key,value in res.getheaders():
-                self.headers[key] = value
+            headers = res.getheaders()
         elif res.status == 204:
-            self.headers = [ ("vamdc-count-species",0),
+            headers = [ ("vamdc-count-species",0),
                             ("vamdc-count-states",0),
                             ("vamdc-truncated",0),
                             ("vamdc-count-molecules",0),
@@ -206,7 +209,7 @@ class Request(object):
                             ("vamdc-count-atoms",0)]
         elif res.status == 408:
             print "TIMEOUT"
-            self.headers =  [("vamdc-count-species",0),
+            headers =  [("vamdc-count-species",0),
                             ("vamdc-count-states",0),
                             ("vamdc-truncated",0),
                             ("vamdc-count-molecules",0),
@@ -216,7 +219,7 @@ class Request(object):
                             ("vamdc-count-atoms",0)]            
         else:
             print "STATUS: %d" % res.status
-            self.headers =  [("vamdc-count-species",0),
+            headers =  [("vamdc-count-species",0),
                             ("vamdc-count-states",0),
                             ("vamdc-truncated",0),
                             ("vamdc-count-molecules",0),
@@ -225,6 +228,9 @@ class Request(object):
                             ("vamdc-count-radiative",0),
                             ("vamdc-count-atoms",0)]
 
+        for key,value in headers:
+            self.headers[key] = value
+ 
     def getlastmodified(self):
         """
         Returns the 'last-modified' date which has been specified in the
@@ -240,6 +246,9 @@ class Request(object):
                 print "Could not parse date %s" % self.headers['last-modified']
                 print e
         else:
+            if self.status == 204:
+                raise NoContentError('requets.getlastmodified')
+
             self.lastmodified = None
 
         return self.lastmodified
