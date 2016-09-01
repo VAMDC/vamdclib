@@ -19,6 +19,7 @@ Contents:
    results
 
    database
+   glossary
    contact
 
 Indices and tables

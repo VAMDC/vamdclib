@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+This module contains functionality to create a sqlite3 database and to store spectroscopic data in it. The data 
+is retrieved via queries to VAMDC database nodes. Methods to insert and update the data are included. The data model
+of the sqlite3 database is fixed and adaptations to other needs require changes to the code within this module.  
+"""
+
+
 import sys
 import sqlite3
 from datetime import datetime
@@ -22,14 +29,16 @@ class Database(object):
     An instance of Database contains methods to store data obtained from VAMDC nodes
     in an sqlite database.
 
-    :ivar conn: connection handler to the sqlite database
+    :ivar sqlite3.Connection conn: connection handler to the sqlite database
     """
     ##********************************************************************
     def __init__(self, database_file = DATABASE_FILE):
         """
-        Connect to database.
-
-        Database will be created if it does not exist
+        The connection to the sqlite3 database is established during initialization of
+        the Database-Instance. A new database will be created if it does not exist. 
+ 
+        :ivar str database_file: Path to the sqlite3 database file. The value given in the
+                             settings.py - file will be used as default.
         """
         try:
             self.conn = sqlite3.connect(database_file)
@@ -42,7 +51,9 @@ class Database(object):
     ##********************************************************************
     def create_structure(self):
         """
-        Create tables in the sqlite3 database
+        Creates tables in the sqlite3 database if they do not exist. The database  
+        layout allows to store transition frequencies and partition functions according
+        to the needs for astrochemical modeling. 
 
         Tables which will be created:
         - Partitionfunctions
@@ -216,6 +227,10 @@ class Database(object):
     ##********************************************************************
     def check_for_updates(self, node):
         """
+        Checks for each database entry if an update for the molecular or atomic specie is available in the
+        specified VAMDC database node. 
+
+        :ivar nodes.Node node: VAMDC database node which will be checked for updates 
         """
 
         count_updates = 0
@@ -270,6 +285,10 @@ class Database(object):
     ##********************************************************************
     def check_for_new_species(self, node):
         """
+        Checks for new entries in the VAMDC database node which are not available in the local
+        sqlite3 database.
+
+        :ivar nodes.Node node: VAMDC database node which will be checked for updates
         """
 
         counter = 0
@@ -293,7 +312,7 @@ class Database(object):
     ##********************************************************************
     def show_species(self):
         """
-        Lists all species stored in the database
+        Lists all species, which are stored in the local sqlite3 database.
         """
         cursor = self.conn.cursor()
         cursor.execute("SELECT PF_Name, PF_SpeciesID, PF_VamdcSpeciesID, PF_Timestamp FROM Partitionfunctions")
@@ -307,7 +326,7 @@ class Database(object):
         """
         Deletes species stored in the database
 
-        speciesid: Id of the Specie
+        :ivar str speciesid: Id of the Specie
         """
         deleted_species = []
         cursor = self.conn.cursor()
@@ -326,12 +345,12 @@ class Database(object):
     ##********************************************************************
     def insert_species_data(self, species, node, update=False):
         """
-        Inserts new species into the local database
+        Checks the VAMDC database node for new species and inserts them into the local database
 
-        species: species which will be inserted
-        node:    vamdc-node / type: instance(nodes.node)
-        update:  if True then all entries in the local database with the same
-                 species-id will be deleted before the insert is performed.
+        :ivar list species: species which will be inserted
+        :ivar nodes.Node node: vamdc-node / type: instance(nodes.node)
+        :ivar boolean update:  if True then all entries in the local database with the same
+                               species-id will be deleted before the insert is performed.
         """
 
         # create a list of names. New names have not to be in that list
@@ -680,7 +699,9 @@ class Database(object):
         All resources will be searched for new entries, which will be inserted
         if available. Additional resources can be specified via add_nodes.
 
-        add_nodes: Single or List of node-instances (nodes.Node)
+        :ivar nodes.Node add_nodes: Single or List of node-instances.
+        :ivar boolean insert_only: Just insert new species and skip updates if True
+        :ivar boolean update_only: Just updates species and skip inserts if True
         """
         # counter to identify which entry is currently processed
         counter = 0
@@ -849,12 +870,12 @@ class Database(object):
     ##********************************************************************
     def getvibstatelabel(self, upper_state, lower_state):
         """
-        create a vibrational state label for a transition
-        in:
-           upper_state = state instance of the upper state
-           lower_state = state instance of the lower state
-        returns:
-          string = vibrational label for the transition
+        Creates vibrational state label for a transition.
+        
+        :ivar specmodel.State upper_state: state instance of the upper state
+        :ivar specmodel.State lower_state: state instance of the lower state
+        :return: vibrational state label for the transition
+        :rtype: str
         """
 
         # Get string which identifies the vibrational states involved in the transition
@@ -901,6 +922,10 @@ class Database(object):
         """
         Creates a name for an atom. The format is
         (massnumber)(elementsymbol)(charge): e.g. 13C+, 12C+
+
+        :ivar specmodel.Atom atom: Atom for which the name will be created
+        :return: Name for the atom
+        :rtype: str
         """
 
         try:
