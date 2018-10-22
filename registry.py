@@ -5,6 +5,9 @@
 routines for querying the registry
 
 """
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
 from settings import *
 
 REL_REG='http://registry.vamdc.eu/vamdc_registry/services/RegistryQueryv1_0'

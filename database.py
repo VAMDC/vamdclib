@@ -11,6 +11,9 @@ import sqlite3
 from datetime import datetime
 from dateutil import parser
 
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+
 import functions
 import query as q
 import results

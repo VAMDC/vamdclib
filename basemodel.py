@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-import functions 
-import numpy
 import sys
+import os
+import numpy
+sys.path.insert(0, os.path.dirname(__file__))
+import functions 
 
 NAMESPACE='http://vamdc.org/xml/xsams/1.0'
 

@@ -4,7 +4,9 @@ This module defines classes and methods to manage data associated with VAMDC nod
 functionality to retrieve a list of registered VAMDC nodes and to handle data such as urls of these
 nodes.
 """
-
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
 try:
     from registry import *
 except:
@@ -67,7 +69,7 @@ class Nodelist(object):
         else:
            return nodes_match
          
- 
+
 class Node(object):
     """
     This class contains informations and methods associated with one (VAMDC) database node,

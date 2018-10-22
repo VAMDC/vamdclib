@@ -5,6 +5,7 @@ if a request has been performed.
 """
 
 import sys
+import os
 
 try:
     from lxml import objectify
@@ -15,8 +16,9 @@ except ImportError:
 from xml.etree import ElementTree
 
 if sys.version_info[0] == 3:
-    from urllib.parse import urlparse
+    import urllib.parse
     urllib2 = urllib.parse
+    from urllib.parse import urlparse
     from http.client import HTTPConnection, urlsplit, HTTPException, socket
     unicode = str
 else:
@@ -24,6 +26,7 @@ else:
     import urllib2
     from httplib import HTTPConnection, urlsplit, HTTPException, socket
 
+sys.path.insert(0, os.path.dirname(__file__))
 from settings import *
 import query as q
 import results as r
@@ -57,6 +60,7 @@ class Request(object):
         """
         self.status = 0
         self.reason = "INIT"
+        self.baseurl = None
 
         if node != None:
             self.setnode(node)
@@ -73,11 +77,11 @@ class Request(object):
         self.status = 0
         self.reason = "INIT"
 
-        if type(node) == nodes.Node:
+        try:
             self.node = node
             
             if not hasattr(self.node,'url') or len(self.node.url)==0:
-#                print "Warning: Url of this node is empty!"
+#                print("Warning: Url of this node is empty!")
                 pass
             else:
                 self.baseurl = self.node.url
@@ -85,6 +89,9 @@ class Request(object):
                     self.baseurl+='sync?'
                 else:
                     self.baseurl+='/sync?'
+        except:
+            print("There was a problem setting the node (%s)" % node)
+            raise
 
     def setbaseurl(self, baseurl):
         """
@@ -113,8 +120,8 @@ class Request(object):
             self.query = q.Query(Query = query)
             self.__setquerypath()
         else:
-#            print type(query)
-#            print "Warning: this is not a query object"
+#            print(type(query))
+#            print("Warning: this is not a query object")
             pass
         
 
