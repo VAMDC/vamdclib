@@ -72,4 +72,4 @@ def getNodeList():
 
 
 if __name__ == '__main__':
-    print getNodeList()
+    print(getNodeList())

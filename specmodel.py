@@ -228,7 +228,7 @@ def collisionaltrans_init(self, xml):
 
 def source_init(self, xml):
     Model.__init__(self, xml)
-    if self.__dict__.has_key('AuthorList'):
+    if 'AuthorList' in self.__dict__:
         self.Authors = ", ".join(self.__dict__['AuthorList'])
 
 def parse_qn(self, qn_element):
@@ -307,7 +307,7 @@ def quantumnumbers__eq__(self,other):
         qns2=self.qn_dict
 
     for qn in qns2:
-        if qns1.has_key(qn):
+        if qn in qns1:
             if qns1[qn]!=qns2[qn]:
                 return False
         else:
@@ -466,11 +466,11 @@ def populate_models(xml, add_states=False):
     for item in DICT_MODELS['dict_types']:
         try:
             data[item['Name']] = eval("%s(xml)" % item['Name'])
-        except Exception, e: # NameError:
+        except Exception as e: # NameError:
             #print "Error: Could not evaluate %s" % item['Name']
             #print e
             pass
-    if add_states and 'States' not in data.keys():
+    if add_states and 'States' not in list(data.keys()):
         data['States'] = {}
         for SpeciesID in data['Molecules']:
             for state in data['Molecules'][SpeciesID].States:

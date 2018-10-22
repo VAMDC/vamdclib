@@ -11,12 +11,8 @@ except ImportError:
     is_available_xml_objectify = False
  
 from xml.etree import ElementTree
-import urllib2
 from specmodel import *
 import query as q
-
-from urlparse import urlparse
-from httplib import HTTPConnection
 
 from dateutil.parser import parse
 
@@ -58,7 +54,7 @@ class Result(object):
         """
 
         if not is_available_xml_objectify:
-            print "Module lxml.objectify not available"
+            print("Module lxml.objectify not available")
             return
         
         try:
@@ -66,8 +62,8 @@ class Result(object):
         except ValueError:
             self.Xml=etree.tostring(self.Xml)
             self.root = objectify.XML(self.Xml)
-        except Exception, e:
-            print "Objectify error: %s " % e
+        except Exception as e:
+            print("Objectify error: %s " % e)
 
     
     def populate_model(self):

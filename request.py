@@ -4,6 +4,8 @@ This module defines classes which define and perform requests to individual VAMD
 if a request has been performed.
 """
 
+import sys
+
 try:
     from lxml import objectify
     is_available_xml_objectify = True
@@ -11,15 +13,22 @@ except ImportError:
     is_available_xml_objectify = False
  
 from xml.etree import ElementTree
-import urllib2
+
+if sys.version_info[0] == 3:
+    from urllib.parse import urlparse
+    urllib2 = urllib.parse
+    from http.client import HTTPConnection, urlsplit, HTTPException, socket
+    unicode = str
+else:
+    from urlparse import urlparse
+    import urllib2
+    from httplib import HTTPConnection, urlsplit, HTTPException, socket
 
 from settings import *
 import query as q
 import results as r
 import nodes
 
-from urlparse import urlparse
-from httplib import HTTPConnection, urlsplit, HTTPException, socket
 
 from dateutil.parser import parse
 
@@ -188,7 +197,7 @@ class Request(object):
         
         try:
             res = conn.getresponse()
-        except socket.timeout, e:
+        except socket.timeout as e:
             self.status = 408
             self.reason = "Socket timeout"
             raise TimeOutError
@@ -208,7 +217,7 @@ class Request(object):
                             ("vamdc-count-radiative",0),
                             ("vamdc-count-atoms",0)]
         elif res.status == 408:
-            print "TIMEOUT"
+            print("TIMEOUT")
             headers =  [("vamdc-count-species",0),
                             ("vamdc-count-states",0),
                             ("vamdc-truncated",0),
@@ -218,7 +227,7 @@ class Request(object):
                             ("vamdc-count-radiative",0),
                             ("vamdc-count-atoms",0)]            
         else:
-            print "STATUS: %d" % res.status
+            print("STATUS: %d" % res.status)
             headers =  [("vamdc-count-species",0),
                             ("vamdc-count-states",0),
                             ("vamdc-truncated",0),
@@ -239,12 +248,12 @@ class Request(object):
         if not self.status == 200:
             self.doheadrequest()
 
-        if self.headers.has_key('last-modified'):
+        if 'last-modified' in self.headers:
             try:
                 self.lastmodified = parse(self.headers['last-modified'])
-            except Exception, e:
-                print "Could not parse date %s" % self.headers['last-modified']
-                print e
+            except Exception as e:
+                print("Could not parse date %s" % self.headers['last-modified'])
+                print(e)
         else:
             if self.status == 204:
                 raise NoContentError('requets.getlastmodified')

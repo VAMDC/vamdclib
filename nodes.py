@@ -8,7 +8,7 @@ nodes.
 try:
     from registry import *
 except:
-    print "Suds package not available. Load Vamdc-Nodes from static file"
+    print("Suds package not available. Load Vamdc-Nodes from static file")
     from local_registry import *
 import query as q
 import request as r
@@ -124,14 +124,14 @@ class Node(object):
                 self.get_species()
                 
         try:
-            print "List of Atoms: "
+            print("List of Atoms: ")
             for atom in self.Atoms:
                 print("%s" % self.Atoms[atom])
     
-            print "List of Molecules: "
+            print("List of Molecules: ")
             for molecule in self.Molecules:
                 print("%s" % self.Molecules[molecule])
 
-        except Exception, e:
-            print "Could not retrieve list of species: %s" % e
+        except Exception as e:
+            print("Could not retrieve list of species: %s" % e)
             

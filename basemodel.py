@@ -21,7 +21,7 @@ def get_attributes(element):
     """
     Returns a list of attributes-tuples (attribute, value) 
     """
-    return element.items()
+    return list(element.items())
 
 def convert_tabulateddata(item):
     """
@@ -140,7 +140,7 @@ def construct_model(dictionary):
                 elif len(code_add) > 0:
                     code = "self.xml.%s" % (code_add,)
                 else:
-                    print "ERROR --------" 
+                    print("ERROR --------") 
             else:
                 if function is not None:
                     if function == 'self':
@@ -233,7 +233,7 @@ def _construct_class(model_definitions, module = None):
                     retval += "None "
             return retval
         
-    if model_definitions.has_key('methods'):
+    if 'methods' in model_definitions:
         for method in model_definitions['methods']:
             setattr(_Model, method['name'], method['method'])
 
@@ -247,14 +247,14 @@ def register_models(DICT_MODELS, module):
     DICT_MODELS: Dictionary which defines Classes and its properties
     """
     for model in DICT_MODELS['model_types']:
-        print "Register Class %s in %s" % (model['Name'], module.__name__)
+        print("Register Class %s in %s" % (model['Name'], module.__name__))
         model_class = _construct_class(model)
         setattr(sys.modules[__name__], model['Name'], model_class )
         setattr(module, model['Name'], model_class )
 
 
     for model in DICT_MODELS['dict_types']:
-        print "Register DictClass %s in %s" % (model['Name'], module.__name__)
+        print("Register DictClass %s in %s" % (model['Name'], module.__name__))
         setattr(module, model['Name'], _construct_dictmodelclass(model, module))
         
 

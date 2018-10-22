@@ -18,7 +18,7 @@ def match_states(states1, states2):
         for state2 in states2:
             #if states2[state2].QuantumNumbers == states1[state1].QuantumNumbers:
             if states2[state2] == states1[state1]:
-                print state1, state2
+                print(state1, state2)
                 matches.append([state1,state2])
 
     return matches
@@ -82,7 +82,7 @@ def append_coltranss(xml, coltrans):
         xml.append(procs)
     elif len(procs)>1:
         # Raise error
-        print "There should be only one Processes element"
+        print("There should be only one Processes element")
         return
     else:
         procs = procs[0]
@@ -95,7 +95,7 @@ def append_coltranss(xml, coltrans):
         procs.append(collisions)
     elif len(collisions)>1:
         # Raise error
-        print "There should be only one Collisions element"
+        print("There should be only one Collisions element")
         return
     else:
         collisions=collisions[0]
@@ -135,7 +135,7 @@ def append_specie(xml, specie):
         xml.append(species)
     elif len(species)>1:
         # Raise error
-        print "There should be only one Species element"
+        print("There should be only one Species element")
         return
     else:
         species = species[0]
@@ -149,7 +149,7 @@ def append_specie(xml, specie):
             xml.append(mols)
         elif len(mols)>1:
             # Raise error
-            print "There should be only one Molecules element"
+            print("There should be only one Molecules element")
             return
         else:
             mols = mols[0]
@@ -164,7 +164,7 @@ def append_specie(xml, specie):
             xml.append(atoms)
         elif len(atoms)>1:
             # Raise error
-            print "There should be only one Molecules element"
+            print("There should be only one Molecules element")
             return
         else:
             atoms = atoms[0]
@@ -178,7 +178,7 @@ def get_or_create_mainelement(xml, tag):
             xml.append(el)
         elif len(el)>1:
             # Raise error
-            print "There should be only one element"
+            print("There should be only one element")
             return
         else:
             el = el[0]
@@ -191,8 +191,8 @@ def get_species_element(xml,id):
 
     try:
         el = xml.xpath('//*[@speciesID="%s"]' %id ,namespaces=NSMAP)
-    except Exception, e:
-        print "Could not get specie: %s" % e
+    except Exception as e:
+        print("Could not get specie: %s" % e)
         return None
 
 

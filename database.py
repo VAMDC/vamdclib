@@ -4,7 +4,7 @@ This module contains functionality to create a sqlite3 database and to store spe
 is retrieved via queries to VAMDC database nodes. Methods to insert and update the data are included. The data model
 of the sqlite3 database is fixed and adaptations to other needs require changes to the code within this module.  
 """
-
+from __future__ import print_function
 
 import sys
 import sqlite3
@@ -42,10 +42,10 @@ class Database(object):
         """
         try:
             self.conn = sqlite3.connect(database_file)
-        except sqlite3.Error, e:
-            print " "
-            print "Can not connect to sqlite3 databse %s." % database_file
-            print "Error: %d: %s" % (e.args[0], e.args[1])
+        except sqlite3.Error as e:
+            print(" ")
+            print("Can not connect to sqlite3 databse %s." % database_file)
+            print("Error: %d: %s" % (e.args[0], e.args[1]))
         return
 
     ##********************************************************************
@@ -245,7 +245,7 @@ class Database(object):
 
         for row in rows:
             counter += 1
-            print "%5d/%5d: Check specie %-55s (%-15s): " % (counter, num_rows, row[0], row[1]),
+            print("%5d/%5d: Check specie %-55s (%-15s): " % (counter, num_rows, row[0], row[1]), end=' ')
             #id = row[1]
             vamdcspeciesid = row[2]
 #            query_string = "SELECT ALL WHERE VAMDCSpeciesID='%s'" % vamdcspeciesid
@@ -256,31 +256,31 @@ class Database(object):
             try:
                 changedate = request.getlastmodified()
             except r.TimeOutError:
-                print "TIMEOUT"
+                print("TIMEOUT")
                 continue
             except r.NoContentError:
-                print "ENTRY OUTDATED" 
+                print("ENTRY OUTDATED") 
                 changedate = None
                 continue
-            except Exception, e:
-                print "Error in getlastmodified: %s " % str(e)
-                print "Status - code: %s" % str(request.status)
+            except Exception as e:
+                print("Error in getlastmodified: %s " % str(e))
+                print("Status - code: %s" % str(request.status))
                 changedate = None
                 continue
 
             tstamp = parser.parse(row[3] + " GMT")
             if changedate is None:
-                print " -- UNKNOWN (Could not retrieve information)"
+                print(" -- UNKNOWN (Could not retrieve information)")
                 continue
             if tstamp < changedate:
-                print " -- UPDATE AVAILABLE "
+                print(" -- UPDATE AVAILABLE ")
                 count_updates += 1
             else:
-                print " -- up to date"
+                print(" -- up to date")
 
         if count_updates == 0:
-            print "\r No updates for your entries available"
-        print "Done"
+            print("\r No updates for your entries available")
+        print("Done")
 
     ##********************************************************************
     def check_for_new_species(self, node):
@@ -302,12 +302,12 @@ class Database(object):
                 cursor.execute("SELECT PF_Name, PF_SpeciesID, PF_VamdcSpeciesID, PF_Timestamp FROM Partitionfunctions WHERE PF_SpeciesID=?", [(id)])
                 exist = cursor.fetchone()
                 if exist is None:
-                    print "ID: %s" % result.data['Molecules'][id]
+                    print("ID: %s" % result.data['Molecules'][id])
                     counter += 1
-            except Exception, e:
-                print e
-                print id
-        print "There are %d new species available" % counter
+            except Exception as e:
+                print(e)
+                print(id)
+        print("There are %d new species available" % counter)
 
     ##********************************************************************
     def show_species(self):
@@ -318,7 +318,7 @@ class Database(object):
         cursor.execute("SELECT PF_Name, PF_SpeciesID, PF_VamdcSpeciesID, PF_Timestamp FROM Partitionfunctions")
         rows = cursor.fetchall()
         for row in rows:
-            print "%-10s %-60s %20s %s" % (row[1], row[0], row[2], row[3])
+            print("%-10s %-60s %20s %s" % (row[1], row[0], row[2], row[3]))
 
 
     ##********************************************************************
@@ -399,13 +399,13 @@ class Database(object):
                         vamdcspeciesid = specie
                         speciesid = None
                 except:
-                    print "Specie is not of wrong type"
-                    print "Type Molecule or string (Inchikey) is allowed"
+                    print("Specie is not of wrong type")
+                    print("Type Molecule or string (Inchikey) is allowed")
                     continue
             if speciesid:
-                print "Processing: {speciesid}".format(speciesid = speciesid)
+                print("Processing: {speciesid}".format(speciesid = speciesid))
             else:
-                print "Processing: {vamdcspeciesid}".format(vamdcspeciesid = vamdcspeciesid)
+                print("Processing: {vamdcspeciesid}".format(vamdcspeciesid = vamdcspeciesid))
                 
 
             try:
@@ -419,8 +419,8 @@ class Database(object):
 
                 result = request.dorequest()
                 #result.populate_model()
-            except Exception, e:
-                print " -- Error %s: Could not fetch and process data" % e.strerror
+            except Exception as e:
+                print(" -- Error %s: Could not fetch and process data" % e.strerror)
                 continue    
             #---------------------------------------
 
@@ -432,7 +432,7 @@ class Database(object):
             # deleted, and thus replaced by the new data
             if update:
                 if speciesid is None:
-                    for sid in result.data['Molecules'].keys() + result.data['Atoms'].keys():
+                    for sid in list(result.data['Molecules'].keys()) + list(result.data['Atoms'].keys()):
                         deleted_species = self.delete_species(sid)
                         for ds in deleted_species:
                             names_black_list.remove(ds)
@@ -449,7 +449,7 @@ class Database(object):
             counter_transitions = 0
             for trans in result.data['RadiativeTransitions']:
                 counter_transitions+=1
-                print "\r insert transition %d of %d" % (counter_transitions, num_transitions_found),
+                print("\r insert transition %d of %d" % (counter_transitions, num_transitions_found), end=' ')
                 # data might contain transitions for other species (if query is based on ichikey/vamdcspeciesid).
                 # Insert transitions only if they belong to the correct specie
 
@@ -464,7 +464,7 @@ class Database(object):
                         upper_state = result.data['States']["%s" % result.data['RadiativeTransitions'][trans].UpperStateRef]
                         lower_state = result.data['States']["%s" % result.data['RadiativeTransitions'][trans].LowerStateRef]
                     except (KeyError, AttributeError):
-                        print " -- Error: State is missing"
+                        print(" -- Error: State is missing")
                         species_with_error.append(id)
                         continue
 
@@ -491,14 +491,14 @@ class Database(object):
                         for pc in result.data['RadiativeTransitions'][trans].ProcessClass:
                             if str(pc)[:3] == 'hyp':
                                 t_hfs = str(pc)
-                    except Exception, e:
-                            print "Error: %s", e
+                    except Exception as e:
+                            print("Error: %s", e)
 
                     frequency = float(result.data['RadiativeTransitions'][trans].FrequencyValue)
                     try:
                         uncertainty = "%lf" % float(result.data['RadiativeTransitions'][trans].FrequencyAccuracy)
                     except TypeError:
-                        print " -- Error uncertainty not available"
+                        print(" -- Error uncertainty not available")
                         species_with_error.append(id)
                         continue
 
@@ -506,7 +506,7 @@ class Database(object):
                     try:
                         weight = int(upper_state.TotalStatisticalWeight)
                     except:
-                        print " -- Error statistical weight not available"
+                        print(" -- Error statistical weight not available")
                         species_with_error.append(id)
                         continue
 
@@ -578,19 +578,19 @@ class Database(object):
                                             str(lower_state.QuantumNumbers.qn_string),
                                             ))
                             num_transitions[t_name] += 1
-                        except Exception, e:
-                            print "Transition has not been inserted:\n Error: %s" % e
-            print "\n"
+                        except Exception as e:
+                            print("Transition has not been inserted:\n Error: %s" % e)
+            print("\n")
             #------------------------------------------------------------------------------------------------------
 
             #------------------------------------------------------------------------------------------------------
             # delete transitions for all entries where an error occured during the insert
             for id in species_with_error:
-                print " -- Species {id} has not been inserted due to an error ".format(id=str(id))
+                print(" -- Species {id} has not been inserted due to an error ".format(id=str(id)))
                 try:
                     for name in species_names[id]:
                         cursor.execute("DELETE FROM Transitions WHERE T_Name=?", (str(name),))
-                        print " --    {name} ".format(name=str(name))
+                        print(" --    {name} ".format(name=str(name)))
                 except:
                     pass
 
@@ -626,7 +626,7 @@ class Database(object):
                     # Insert row in partitionfunctions
                     try:
                         if id in result.data['Atoms']:
-                            if not result.data['Atoms'][id].__dict__.has_key('Comment'):
+                            if 'Comment' not in result.data['Atoms'][id].__dict__:
                                 result.data['Atoms'][id].Comment = ""
                             cursor.execute("INSERT INTO Partitionfunctions (PF_Name, PF_SpeciesID, PF_VamdcSpeciesID, PF_Comment, PF_ResourceID, PF_URL, PF_Timestamp) VALUES (?,?,?,?,?,?,?)",
                                            ("%s" % name,
@@ -648,10 +648,10 @@ class Database(object):
                                             "%s%s%s" % (url, "sync?LANG=VSS2&amp;REQUEST=doQuery&amp;FORMAT=XSAMS&amp;QUERY=Select+*+where+SpeciesID%3D", id),
                                             datetime.now(), ))
                     except sqlite3.Error as e:
-                        print "An error occurred:", e.args[0]
+                        print("An error occurred:", e.args[0])
                     except Exception as e:
-                        print "An error occurred:", e.args[0]
-                        print result.data['Molecules'].keys()
+                        print("An error occurred:", e.args[0])
+                        print(list(result.data['Molecules'].keys()))
 
                 # Update Partitionfunctions
                 if id in result.data['Atoms'].keys():
@@ -661,14 +661,14 @@ class Database(object):
                             field = ("PF_%.3lf" % float(temperature)).replace('.', '_')
                             sql = "UPDATE Partitionfunctions SET %s=? WHERE PF_SpeciesID=? " % field
                             cursor.execute(sql, (pf_values[id], id))
-                        except Exception, e:
-                            print "SQL-Error: %s " % sql
-                            print pf_value, id
-                            print "Error: %d: %s" % (e.args[0], e.args[1])
+                        except Exception as e:
+                            print("SQL-Error: %s " % sql)
+                            print(pf_value, id)
+                            print("Error: %d: %s" % (e.args[0], e.args[1]))
                 else:
                     try:
                         for pfs in result.data['Molecules'][id].PartitionFunction:
-                            if not pfs.__dict__.has_key('NuclearSpinIsomer'):
+                            if 'NuclearSpinIsomer' not in pfs.__dict__:
                                 nsi = ''
                             else:
                                 nsi = pfs.NuclearSpinIsomer  
@@ -678,16 +678,16 @@ class Database(object):
                                     field = ("PF_%.3lf" % float(temperature)).replace('.', '_')
                                     sql = "UPDATE Partitionfunctions SET %s=? WHERE PF_SpeciesID=? AND IFNULL(PF_NuclearSpinIsomer,'')=?" % field
                                     cursor.execute(sql, (pfs.values[temperature], id, nsi))
-                                except Exception, e:
-                                    print "SQL-Error: %s " % sql
-                                    print pfs.values[temperature], id
-                                    print "Error: %d: %s" % (e.args[0], e.args[1])
+                                except Exception as e:
+                                    print("SQL-Error: %s " % sql)
+                                    print(pfs.values[temperature], id)
+                                    print("Error: %d: %s" % (e.args[0], e.args[1]))
                     except:
                         pass
             #------------------------------------------------------------------------------------------------------
 
             for row in num_transitions:
-                print "      for %s inserted %d transitions" % (row, num_transitions[row])
+                print("      for %s inserted %d transitions" % (row, num_transitions[row]))
             self.conn.commit()
             cursor.close()
 
@@ -719,7 +719,7 @@ class Database(object):
             if node is None:
                 pass
             elif not isinstance(node, nodes.Node):
-                print "Could not attach node. Wrong type, it should be type <nodes.Node>"
+                print("Could not attach node. Wrong type, it should be type <nodes.Node>")
             else:
                 dbnodes.append(node)
         
@@ -736,18 +736,18 @@ class Database(object):
 
         if not insert_only:
             print("----------------------------------------------------------")
-            print "Looking for updates"
+            print("Looking for updates")
             print("----------------------------------------------------------")
 
             for row in rows:
                 counter += 1
-                print "%5d/%5d: Check specie %-55s (%-15s): " % (counter, num_rows, row[0], row[1]),
+                print("%5d/%5d: Check specie %-55s (%-15s): " % (counter, num_rows, row[0], row[1]), end=' ')
                 try:
                     node = nl.getnode(str(row[4]))
                 except:
                     node = None
                 if node is None:
-                    print " -- RESOURCE NOT AVAILABLE"
+                    print(" -- RESOURCE NOT AVAILABLE")
                     continue
                 else:
                     if node not in dbnodes:
@@ -763,39 +763,39 @@ class Database(object):
                 errorcode = None
                 try:
                     changedate = request.getlastmodified()
-                except r.NoContentError, e:
+                except r.NoContentError as e:
                     # Delete entries which are not available anymore
                     if request.status == 204:
                         if delete_archived:
-                            print " -- ENTRY ARCHIVED AND WILL BE DELETED -- "
+                            print(" -- ENTRY ARCHIVED AND WILL BE DELETED -- ")
                             del_specie = self.delete_species(row[1])
                             if len(del_specie) > 0:
-                                print "\r Done"
+                                print("\r Done")
                         else:
-                            print " -- ENTRY ARCHIVED -- "
+                            print(" -- ENTRY ARCHIVED -- ")
                         continue
 
-                except r.TimeOutError, e:
+                except r.TimeOutError as e:
 #                    errorcode = e.strerror
 #                    changedate = None
-                    print " -- TIMEOUT: Could not check entry -- "
+                    print(" -- TIMEOUT: Could not check entry -- ")
                     continue
 
                 except:
                     changedate = None
-                    print "Could not retrieve information - Unexpected error:", sys.exc_info()[0]
+                    print("Could not retrieve information - Unexpected error:", sys.exc_info()[0])
                     continue
 
                 tstamp = parser.parse(row[3] + " GMT")
                 if changedate is None:
                     if errorcode is None:
                         errorcode = "UNKNOWN"
-                    print " -- %s (Could not retrieve information)" % errorcode
+                    print(" -- %s (Could not retrieve information)" % errorcode)
                     continue
                 if tstamp < changedate:
-                    print " -- UPDATE AVAILABLE "
+                    print(" -- UPDATE AVAILABLE ")
                     count_updates += 1
-                    print " -- PERFORM UPDATE -- "
+                    print(" -- PERFORM UPDATE -- ")
                     query_string = "SELECT SPECIES WHERE SpeciesID=%s" % speciesid
                     request.setquery(query_string)
 
@@ -803,20 +803,20 @@ class Database(object):
                     try:
                         result.populate_model()
                     except:
-                        print " Error: Could not process data "
+                        print(" Error: Could not process data ")
                         continue
                     try:
                         self.insert_species_data(result.data['Molecules'], node, update = True)
                     except:
-                        print " Error: Could not update data "
+                        print(" Error: Could not update data ")
                         continue
-                    print " -- UPDATE DONE    -- "
+                    print(" -- UPDATE DONE    -- ")
                 else:
-                    print " -- up to date"
+                    print(" -- up to date")
 
             if count_updates == 0:
-                print "\r No updates for your entries available"
-            print "Done"
+                print("\r No updates for your entries available")
+            print("Done")
         else:
             cursor.execute("SELECT distinct PF_ResourceID FROM Partitionfunctions ")
             rows = cursor.fetchall()
@@ -826,7 +826,7 @@ class Database(object):
                 except:
                     node = None
                 if node is None:
-                    print " -- RESOURCE NOT AVAILABLE"
+                    print(" -- RESOURCE NOT AVAILABLE")
                     continue
                 else:
                     if node not in dbnodes:
@@ -844,7 +844,7 @@ class Database(object):
             counter = 0
             insert_molecules_list = []
             print("----------------------------------------------------------")
-            print "Query '{dbname}' for new species ".format(dbname=node.name)
+            print("Query '{dbname}' for new species ".format(dbname=node.name))
             print("----------------------------------------------------------")
             request.setnode(node)
             result = request.getspecies()
@@ -853,19 +853,19 @@ class Database(object):
                     cursor.execute("SELECT PF_Name, PF_SpeciesID, PF_VamdcSpeciesID, PF_Timestamp FROM Partitionfunctions WHERE PF_SpeciesID=?", [(id)])
                     exist = cursor.fetchone()
                     if exist is None:
-                        print "   %s" % result.data['Molecules'][id]
+                        print("   %s" % result.data['Molecules'][id])
                         insert_molecules_list.append(result.data['Molecules'][id])
                         counter += 1
-                except Exception, e:
-                    print e
-                    print id
-            print "There are %d new species available" % counter
+                except Exception as e:
+                    print(e)
+                    print(id)
+            print("There are %d new species available" % counter)
             print("----------------------------------------------------------")
-            print "Start insert"
+            print("Start insert")
             print("----------------------------------------------------------")           
             self.insert_species_data(insert_molecules_list, node)
             print("----------------------------------------------------------")           
-            print "Done"
+            print("Done")
 
     ##********************************************************************
     def getvibstatelabel(self, upper_state, lower_state):
@@ -883,7 +883,7 @@ class Database(object):
             t_state = str(upper_state.QuantumNumbers.vibstate).strip()
         else:
             v_dict = {}
-            for label in list(set(upper_state.QuantumNumbers.qn_dict.keys() + lower_state.QuantumNumbers.qn_dict.keys())):
+            for label in list(set(list(upper_state.QuantumNumbers.qn_dict.keys()) + list(lower_state.QuantumNumbers.qn_dict.keys()))):
                 if specmodel.isVibrationalStateLabel(label):
                     try:
                         value_up = upper_state.QuantumNumbers.qn_dict[label]

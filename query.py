@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from urllib import urlencode,quote
+import sys
+if sys.version_info[0] == 3:
+    from urllib.parse import urlencode, quote
+else:
+    from urllib import urlencode, quote
 from nodes import *
 
 QUERY_SPECIES="SELECT SPECIES"
@@ -28,7 +32,7 @@ class Query(object):
     def set_node(self, node):
         self.Node = node
         if not hasattr(self.Node,'url') or len(self.Node.url)==0:
-            print "Warning: Url of this node is empty!"
+            print("Warning: Url of this node is empty!")
         else:
             self.Requesturl = self.get_sync_url(self.Node.url)
         
@@ -80,7 +84,7 @@ class QueryBuilder(object):
         else:
             self.Query='SELECT %s ' % Requestables
         
-        if Restrictions.has_key('inchikey'):
+        if 'inchikey' in Restrictions:
             if hasattr(Restrictions['inchikey'],'__iter__') and len(Restrictions['inchikey'])>0:
                 inchi='(InchiKey='+'\''+'\' AND InchiKey=\''.join(Restrictions['inchikey'])+'\')'
             elif len(Restrictions['inchikey'])>0:
