@@ -26,11 +26,16 @@ else:
     import urllib2
     from httplib import HTTPConnection, urlsplit, HTTPException, socket
 
-sys.path.insert(0, os.path.dirname(__file__))
-from settings import *
-import query as q
-import results as r
-import nodes
+if sys.version_info[0] == 3:
+    from .settings import *
+    from . import query as q
+    from . import results as r
+    from . import nodes
+else:
+    from settings import *
+    import query as q
+    import results as r
+    import nodes
 
 
 from dateutil.parser import parse
@@ -76,12 +81,14 @@ class Request(object):
         """
         self.status = 0
         self.reason = "INIT"
+        print("nodes.Node is: %s" % nodes.Node)
+        print("node is: %s" % type(node))
 
         try:
             self.node = node
             
             if not hasattr(self.node,'url') or len(self.node.url)==0:
-#                print("Warning: Url of this node is empty!")
+                #print("Warning: Url of this node is empty!")
                 pass
             else:
                 self.baseurl = self.node.url
@@ -120,8 +127,8 @@ class Request(object):
             self.query = q.Query(Query = query)
             self.__setquerypath()
         else:
-#            print(type(query))
-#            print("Warning: this is not a query object")
+            #print(type(query))
+            #print("Warning: this is not a query object")
             pass
         
 

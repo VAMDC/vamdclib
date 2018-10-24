@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
+
 import numpy
-sys.path.insert(0, os.path.dirname(__file__))
-import functions
-from basemodel import *
+
+
+if sys.version_info[0] == 3:
+    from . import functions
+    from .basemodel import *
+else:
+    import functions
+    from basemodel import *
 #import basemodel
 
 NAMESPACE='http://vamdc.org/xml/xsams/1.0'

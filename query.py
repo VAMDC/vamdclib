@@ -6,8 +6,11 @@ if sys.version_info[0] == 3:
     from urllib.parse import urlencode, quote
 else:
     from urllib import urlencode, quote
-sys.path.insert(0, os.path.dirname(__file__))
-from nodes import *
+
+if sys.version_info[0] == 3:
+    from .nodes import *
+else:
+    from nodes import *
 
 QUERY_SPECIES="SELECT SPECIES"
 

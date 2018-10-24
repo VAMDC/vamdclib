@@ -2,8 +2,11 @@
 import sys
 import os
 import numpy
-sys.path.insert(0, os.path.dirname(__file__))
-import functions 
+
+if sys.version_info[0] == 3:
+    from . import functions
+else:
+    import functions
 
 NAMESPACE='http://vamdc.org/xml/xsams/1.0'
 

@@ -2,9 +2,12 @@
 
 import sys
 import os
-sys.path.insert(0, os.path.dirname(__file__))
-from results import *
 from copy import deepcopy
+
+if sys.version_info[0] == 3:
+    from .results import *
+else:
+    from results import *
 
 NAMESPACE='http://vamdc.org/xml/xsams/0.3'
 NSMAP = {'ns':NAMESPACE}

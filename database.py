@@ -10,17 +10,24 @@ import sys
 import sqlite3
 from datetime import datetime
 from dateutil import parser
-
 import os
-sys.path.insert(0, os.path.dirname(__file__))
 
-import functions
-import query as q
-import results
-import request as r
-import nodes
-import specmodel
-from settings import *
+if sys.version_info[0] == 3:
+    from . import functions
+    from . import query as q
+    from . import results
+    from . import request as r
+    from . import nodes
+    from . import specmodel
+    from .settings import *
+else:
+    import functions
+    import query as q
+    import results
+    import request as r
+    import nodes
+    import specmodel
+    from settings import *
 
 # List of Temperatures for which the Partitionfunction is stored in the sqlite database.
 Temperatures = [1.072, 1.148, 1.230, 1.318, 1.413, 1.514, 1.622, 1.738, 1.862, 1.995, 2.138, 2.291, 2.455, 2.630, 2.725, 2.818, 3.020, 3.236, 3.467, 3.715, 3.981, 4.266, 4.571, 4.898, 5.000, 5.248, 5.623, 6.026, 6.457, 6.918, 7.413, 7.943, 8.511, 9.120, 9.375, 9.772, 10.471, 11.220, 12.023, 12.882, 13.804, 14.791, 15.849, 16.982, 18.197, 18.750, 19.498, 20.893, 22.387, 23.988, 25.704, 27.542, 29.512, 31.623, 33.884, 36.308, 37.500, 38.905, 41.687, 44.668, 47.863, 51.286, 54.954, 58.884, 63.096, 67.608, 72.444, 75.000, 77.625, 83.176, 89.125, 95.499, 102.329, 109.648, 117.490, 125.893, 134.896, 144.544, 150.000, 154.882, 165.959, 177.828, 190.546, 204.174, 218.776, 225.000, 234.423, 251.189, 269.153, 288.403, 300.000, 309.030, 331.131, 354.813, 380.189, 407.380, 436.516, 467.735, 500.000, 501.187, 537.032, 575.440, 616.595, 660.693, 707.946, 758.578, 812.831, 870.964, 933.254, 1000.000, ]

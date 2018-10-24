@@ -6,15 +6,24 @@ nodes.
 """
 import sys
 import os
-sys.path.insert(0, os.path.dirname(__file__))
-try:
-    from registry import *
-except:
-    print("Suds package not available. Load Vamdc-Nodes from static file")
-    from local_registry import *
-import query as q
-import request as r
-        
+
+if sys.version_info[0] == 3:
+    try:
+        from .registry import *
+    except:
+        print("Suds package not available. Load Vamdc-Nodes from static file")
+        from .local_registry import *
+    from . import query as q
+    from . import request as r
+else:
+    try:
+        from registry import *
+    except:
+        print("Suds package not available. Load Vamdc-Nodes from static file")
+        from local_registry import *
+    import query as q
+    import request as r
+
 
 class Nodelist(object):
     """

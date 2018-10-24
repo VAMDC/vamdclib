@@ -4,22 +4,25 @@ This module contains classes and methods to handle and process the result obtain
 by a VAMDC request.
 """
 
+import sys
+import os
+from xml.etree import ElementTree
+from dateutil.parser import parse
+
 try:
     from lxml import objectify
     is_available_xml_objectify = True
 except ImportError:
     is_available_xml_objectify = False
- 
-from xml.etree import ElementTree
 
-import sys
-import os
-sys.path.insert(0, os.path.dirname(__file__))
 
-from specmodel import *
-import query as q
+if sys.version_info[0] == 3:
+    from .specmodel import *
+    from . import query as q
+else:
+    from specmodel import *
+    import query as q
 
-from dateutil.parser import parse
 
 XSD = "http://vamdc.org/xml/xsams/1.0"
 

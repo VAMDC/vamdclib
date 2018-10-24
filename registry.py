@@ -7,8 +7,11 @@ routines for querying the registry
 """
 import sys
 import os
-sys.path.insert(0, os.path.dirname(__file__))
-from settings import *
+
+if sys.version_info[0] == 3:
+    from .settings import *
+else:
+    from settings import *
 
 REL_REG='http://registry.vamdc.eu/vamdc_registry/services/RegistryQueryv1_0'
 DEV_REG='http://casx019-zone1.ast.cam.ac.uk/registry/services/RegistryQueryv1_0'
