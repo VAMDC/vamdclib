@@ -81,8 +81,6 @@ class Request(object):
         """
         self.status = 0
         self.reason = "INIT"
-        print("nodes.Node is: %s" % nodes.Node)
-        print("node is: %s" % type(node))
 
         try:
             self.node = node
