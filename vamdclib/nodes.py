@@ -45,7 +45,7 @@ class Nodelist(object):
         """
         returnstring = ""
         for node in self.nodes:
-            returnstring +="%s\n" % node.name
+            returnstring += "%s\n" % node.name
 
         return returnstring
 
@@ -71,13 +71,13 @@ class Nodelist(object):
         """
         nodes_match = []
         for node in self.nodes:
-           if searchstring in node.identifier or searchstring in node.name:
-               nodes_match.append(node)
+            if searchstring in node.identifier or searchstring in node.name:
+                nodes_match.append(node)
         if len(nodes_match) == 1:
-           return nodes_match[0]
+            return nodes_match[0]
         else:
-           return nodes_match
-         
+            return nodes_match
+        
 
 class Node(object):
     """
