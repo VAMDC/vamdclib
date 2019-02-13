@@ -16,7 +16,6 @@ from specmodel import *
 import query as q
 
 from urlparse import urlparse
-from httplib import HTTPConnection
 
 from dateutil.parser import parse
 
