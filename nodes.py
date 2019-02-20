@@ -26,7 +26,7 @@ class Nodelist(object):
         """
         self.nodes = []
         for node in getNodeList():
-            self.nodes.append(Node(node['name'], url=node['url'], identifier = node['identifier']))
+            self.nodes.append(Node(node['name'], url=node['url'], referenceUrl=node['referenceUrl'],identifier = node['identifier'], maintainer=node['maintainer'], returnables=node['returnables']))
 
     def __repr__(self):
         """
@@ -42,6 +42,7 @@ class Nodelist(object):
         """
         Return a nodes.Node instance for the given ivo-identifier. 
         """
+
         for node in self.nodes:
             if node.identifier == identifier:
                 return node
@@ -66,6 +67,10 @@ class Nodelist(object):
            return nodes_match[0]
         else:
            return nodes_match
+
+    def __iter__(self):
+        return self.nodes.__iter__()
+
          
  
 class Node(object):
@@ -77,10 +82,13 @@ class Node(object):
     :ivar url: Url of the VAMDC node 
     :ivar identifier: IVO-Identifier of the Node
     """
-    def __init__(self, name, url=None, identifier = None):
+    def __init__(self, name, url=None, referenceUrl = None, identifier = None , maintainer = None, returnables = None):
         self.name=name
         self.url=url
+        self.referenceUrl=referenceUrl
         self.identifier = identifier
+        self.maintainer = maintainer
+        self.returnables = returnables
 
     def __repr__(self):
         """
