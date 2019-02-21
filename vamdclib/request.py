@@ -19,12 +19,12 @@ if sys.version_info[0] == 3:
     import urllib.parse
     urllib2 = urllib.parse
     from urllib.parse import urlparse
-    from http.client import HTTPConnection, urlsplit, HTTPException, socket
+    from http.client import HTTPConnection, HTTPSConnection, urlsplit, HTTPException, socket
     unicode = str
 else:
     from urlparse import urlparse
     import urllib2
-    from httplib import HTTPConnection, urlsplit, HTTPException, socket
+    from httplib import HTTPConnection, HTTPSConnection, urlsplit, HTTPException, socket
 
 if sys.version_info[0] == 3:
     from .settings import *
@@ -153,7 +153,10 @@ class Request(object):
         url = self.baseurl + self.querypath
         urlobj = urlsplit(url)
         
-        conn = HTTPConnection(urlobj.netloc, timeout = timeout)
+        if urlobj.scheme == 'https':
+            conn = HTTPSConnection(urlobj.netloc, timeout = timeout)
+        else:
+            conn = HTTPConnection(urlobj.netloc, timeout = timeout)
         conn.putrequest(HttpMethod, urlobj.path+"?"+urlobj.query)
         conn.endheaders()
         
@@ -202,8 +205,11 @@ class Request(object):
 
         url = self.baseurl + self.querypath
         urlobj = urlsplit(url)
-        
-        conn = HTTPConnection(urlobj.netloc, timeout = timeout)
+       
+        if urlobj.scheme == 'https':
+            conn = HTTPSConnection(urlobj.netloc, timeout = timeout)
+        else:
+            conn = HTTPConnection(urlobj.netloc, timeout = timeout)
         conn.putrequest("HEAD", urlobj.path+"?"+urlobj.query)
         conn.endheaders()
         
