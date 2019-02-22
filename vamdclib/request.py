@@ -6,6 +6,7 @@ if a request has been performed.
 
 import sys
 import os
+import ssl
 
 try:
     from lxml import objectify
@@ -56,16 +57,18 @@ class Request(object):
     """
     A Request instance represents one request to a specified VAMDC database node. 
     """
-    def __init__(self, node = None, query = None):
+    def __init__(self, node=None, query=None, verifyhttps=True):
         """
-        Initialize a request instance. 
+        Initialize a request instance.
 
         node: Database-Node to which the request will be sent
         query: Query which will be performed on the database.
+        verifyhttps: Modifies the HTTPSConnection context to skip certificate verification if desired
         """
         self.status = 0
         self.reason = "INIT"
         self.baseurl = None
+        self.verifyhttps = verifyhttps
 
         if node != None:
             self.setnode(node)
@@ -140,7 +143,7 @@ class Request(object):
                                                                      urllib2.quote(self.query.Query))
         
 
-    def dorequest(self, timeout = TIMEOUT, HttpMethod = "POST", parsexsams = True):
+    def dorequest(self, timeout=TIMEOUT, HttpMethod="POST", parsexsams=True):
         """
         Sends the request to the database node and returns a result.Result instance. The
         request uses 'POST' requests by default. If the request fails or if stated in the parameter 'HttpMethod',
@@ -154,9 +157,12 @@ class Request(object):
         urlobj = urlsplit(url)
         
         if urlobj.scheme == 'https':
-            conn = HTTPSConnection(urlobj.netloc, timeout = timeout)
+            if self.verifyhttps:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout)
+            else:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout, context=ssl._create_unverified_context())
         else:
-            conn = HTTPConnection(urlobj.netloc, timeout = timeout)
+            conn = HTTPConnection(urlobj.netloc, timeout=timeout)
         conn.putrequest(HttpMethod, urlobj.path+"?"+urlobj.query)
         conn.endheaders()
         
@@ -177,7 +183,7 @@ class Request(object):
                 result.Content = res.read()
             elif res.status == 400 and HttpMethod == 'POST':
                 # Try to use http-method: GET
-                result = self.dorequest( HttpMethod = 'GET', parsexsams = parsexsams)
+                result = self.dorequest(HttpMethod='GET', parsexsams=parsexsams)
             else:
                 result = None
         else:
@@ -189,7 +195,7 @@ class Request(object):
                 result.populate_model()
             elif res.status == 400 and HttpMethod == 'POST':
                 # Try to use http-method: GET
-                result = self.dorequest( HttpMethod = 'GET', parsexsams = parsexsams)
+                result = self.dorequest(HttpMethod='GET', parsexsams=parsexsams)
             else:
                 result = None
 
@@ -207,9 +213,12 @@ class Request(object):
         urlobj = urlsplit(url)
        
         if urlobj.scheme == 'https':
-            conn = HTTPSConnection(urlobj.netloc, timeout = timeout)
+            if self.verifyhttps:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout)
+            else:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout, context=ssl._create_unverified_context())
         else:
-            conn = HTTPConnection(urlobj.netloc, timeout = timeout)
+            conn = HTTPConnection(urlobj.netloc, timeout=timeout)
         conn.putrequest("HEAD", urlobj.path+"?"+urlobj.query)
         conn.endheaders()
         
