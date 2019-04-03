@@ -67,15 +67,14 @@ def getNodeList():
             url = node.url.split(" ")[0]
         except:
             url = None
-            
+
         nameurls.append({
-                'name': node.title,
-                'url': url,
-                'referenceUrl': node.referenceURL,
-                'identifier': node.identifier,
-                'maintainer': node.maintainer,
-                'returnables': node.returnables['returnable']
-                })
+            'name': node.title,
+            'url': url,
+            'referenceUrl': node.referenceUrl if "referenceUrl" in dir(node) else None,
+            'identifier': node.identifier,
+            'maintainer': node.maintainer,
+            'returnables': node.returnables['returnable']})
     return nameurls
 
 

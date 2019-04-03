@@ -26,7 +26,13 @@ class Nodelist(object):
         """
         self.nodes = []
         for node in getNodeList():
-            self.nodes.append(Node(node['name'], url=node['url'], referenceUrl=node['referenceUrl'],identifier = node['identifier'], maintainer=node['maintainer'], returnables=node['returnables']))
+            self.nodes.append(Node(
+                name=node['name'],
+                url=node['url'],
+                referenceUrl=node.get('referenceUrl', None),
+                identifier=node['identifier'],
+                maintainer=node.get('maintainer', None),
+                returnables=node.get('returnables', None)))
 
     def __repr__(self):
         """
