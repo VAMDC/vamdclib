@@ -13,15 +13,15 @@ if sys.version_info[0] == 3:
 else:
     from settings import *
 
-REL_REG='http://registry.vamdc.eu/vamdc_registry/services/RegistryQueryv1_0'
-DEV_REG='http://casx019-zone1.ast.cam.ac.uk/registry/services/RegistryQueryv1_0'
-REL_REG='http://registry.vamdc.eu/registry-12.07/services/RegistryQueryv1_0'
+REL_REG = 'http://registry.vamdc.eu/vamdc_registry/services/RegistryQueryv1_0'
+DEV_REG = 'http://casx019-zone1.ast.cam.ac.uk/registry/services/RegistryQueryv1_0'
+REL_REG = 'http://registry.vamdc.eu/registry-12.07/services/RegistryQueryv1_0'
 # use registry defined in settings if defined
 try:
   WSDL = REGURL + '?wsdl'
 except:
   REGURL = REL_REG
-  WSDL = REGURL+'?wsdl'
+  WSDL = REGURL + '?wsdl'
 
 from suds.client import Client
 from suds.xsd.doctor import Doctor
@@ -74,7 +74,7 @@ def getNodeList():
             url = node.url.split(" ")[0]
         except:
             url = None
-            
+
         nameurls.append({
             'name': node.title,
             'url': url,
