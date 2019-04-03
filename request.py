@@ -39,15 +39,17 @@ class Request(object):
     """
     A Request instance represents one request to a specified VAMDC database node. 
     """
-    def __init__(self, node = None, query = None):
+    def __init__(self, node=None, query=None, verifyhttps=True):
         """
         Initialize a request instance. 
 
         node: Database-Node to which the request will be sent
         query: Query which will be performed on the database.
+        verifyhttps: Modifies the HTTPSConnection context to skip certificate verification if desired
         """
         self.status = 0
         self.reason = "INIT"
+        self.verifyhttps = verifyhttps
 
         if node != None:
             self.setnode(node)
@@ -133,7 +135,10 @@ class Request(object):
         urlobj = urlsplit(url)
         
         if urlobj.scheme == 'https':
-            conn = HTTPSConnection(urlobj.netloc, timeout = timeout)
+            if self.verifyhttps:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout)
+            else:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout, context=ssl._create_unverified_context())
         else:
             conn = HTTPConnection(urlobj.netloc, timeout = timeout)
         conn.putrequest(HttpMethod, urlobj.path+"?"+urlobj.query)
@@ -186,7 +191,10 @@ class Request(object):
         urlobj = urlsplit(url)
        
         if urlobj.scheme == 'https':
-            conn = HTTPSConnection(urlobj.netloc, timeout = timeout)
+            if self.verifyhttps:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout)
+            else:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout, context=ssl._create_unverified_context())
         else:
             conn = HTTPConnection(urlobj.netloc, timeout = timeout)
         conn.putrequest("HEAD", urlobj.path+"?"+urlobj.query)
