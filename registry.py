@@ -5,17 +5,23 @@
 routines for querying the registry
 
 """
-from settings import *
+import sys
+import os
 
-REL_REG='http://registry.vamdc.eu/vamdc_registry/services/RegistryQueryv1_0'
-DEV_REG='http://casx019-zone1.ast.cam.ac.uk/registry/services/RegistryQueryv1_0'
-REL_REG='http://registry.vamdc.eu/registry-12.07/services/RegistryQueryv1_0'
+if sys.version_info[0] == 3:
+    from .settings import *
+else:
+    from settings import *
+
+REL_REG = 'http://registry.vamdc.eu/vamdc_registry/services/RegistryQueryv1_0'
+DEV_REG = 'http://casx019-zone1.ast.cam.ac.uk/registry/services/RegistryQueryv1_0'
+REL_REG = 'http://registry.vamdc.eu/registry-12.07/services/RegistryQueryv1_0'
 # use registry defined in settings if defined
 try:
   WSDL = REGURL + '?wsdl'
 except:
   REGURL = REL_REG
-  WSDL = REGURL+'?wsdl'
+  WSDL = REGURL + '?wsdl'
 
 from suds.client import Client
 from suds.xsd.doctor import Doctor
@@ -37,10 +43,11 @@ class RegistryDoctor(Doctor):
 
 
 def getNodeList():
+
     d = RegistryDoctor()
     client = Client(WSDL) #,doctor=d)
 
-    qr = """declare namespace ri='http://www.ivoa.net/xml/RegistryInterface/v1.0';
+    qr="""declare namespace ri='http://www.ivoa.net/xml/RegistryInterface/v1.0';
 <nodes>
 {
    for $x in //ri:Resource
@@ -80,4 +87,4 @@ def getNodeList():
 
 
 if __name__ == '__main__':
-    print getNodeList()
+    print(getNodeList())

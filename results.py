@@ -4,20 +4,25 @@ This module contains classes and methods to handle and process the result obtain
 by a VAMDC request.
 """
 
+import sys
+import os
+from xml.etree import ElementTree
+from dateutil.parser import parse
+
 try:
     from lxml import objectify
     is_available_xml_objectify = True
 except ImportError:
     is_available_xml_objectify = False
- 
-from xml.etree import ElementTree
-import urllib2
-from specmodel import *
-import query as q
 
-from urlparse import urlparse
 
-from dateutil.parser import parse
+if sys.version_info[0] == 3:
+    from .specmodel import *
+    from . import query as q
+else:
+    from specmodel import *
+    import query as q
+
 
 XSD = "http://vamdc.org/xml/xsams/1.0"
 
@@ -57,7 +62,7 @@ class Result(object):
         """
 
         if not is_available_xml_objectify:
-            print "Module lxml.objectify not available"
+            print("Module lxml.objectify not available")
             return
         
         try:
@@ -65,8 +70,8 @@ class Result(object):
         except ValueError:
             self.Xml=etree.tostring(self.Xml)
             self.root = objectify.XML(self.Xml)
-        except Exception, e:
-            print "Objectify error: %s " % e
+        except Exception as e:
+            print("Objectify error: %s " % e)
 
     
     def populate_model(self):
