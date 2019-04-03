@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import re
+
+if sys.version_info[0] == 3:
+    xrange = range
 
 # dictionary with mass references used in the inchi-isotopic layer
 atom_mass_reference = {
@@ -121,7 +125,7 @@ class InChI:
             mass_reference = atom_mass_reference[atom['symbol']]
             atom['isotope'] = mass_reference 
             
-        if not self.dict_species.has_key('isotopic_atoms'):
+        if 'isotopic_atoms' not in self.dict_species:
             return
 
         # parse isotopic layer and change isotopic mass number accordingly
@@ -180,7 +184,7 @@ class InChI:
                 atomid, isotope = layer.split('-')
                 isotope = -int(isotope)
             else:
-                print "Could not parse isotope info %s" % layer
+                print("Could not parse isotope info %s" % layer)
                 continue
             atom = self.atoms[int(atomid)]
             mass_reference = atom_mass_reference[atom['symbol']]
@@ -189,7 +193,7 @@ class InChI:
                                        #self.atoms[atomid]['isotope'] = isotope
 
         # process /h isotopic sublayer (isotopic information on mobile H atoms)
-        if self.dict_species.has_key('isotopic_exchangable_H'):
+        if 'isotopic_exchangable_H' in self.dict_species:
             exchangableH = self.dict_species['isotopic_exchangable_H']
             found = re.search("[H,D,T][0-9]*",exchangableH)
             while found:
@@ -244,7 +248,7 @@ class InChI:
         """
 
         self.dict_species['totalcharge'] = 0
-        if not self.dict_species.has_key('charge'):
+        if 'charge' not in self.dict_species:
             return
         
         for q in self.dict_species['charge'].split(";"):
@@ -257,7 +261,7 @@ class InChI:
         """
 
         self.dict_species['num_protons'] = 0
-        if not self.dict_species.has_key('protons'):
+        if 'protons' not in self.dict_species:
             return
         
         for q in self.dict_species['protons'].split(";"):
@@ -274,7 +278,7 @@ class InChI:
         """
         # first hydrogen info which is enclosed in brackets have to be identified
         # otherwise a split by ',' will not work
-        if not self.dict_species.has_key('H_atoms'):
+        if 'H_atoms' not in self.dict_species:
             self.dict_species['H_atoms'] = ""
             
         hlayer = self.dict_species['H_atoms']
@@ -315,7 +319,7 @@ class InChI:
             atomids, count_H = layer.split('H')
             id_range = atomids.split('-')
             if len(id_range) == 2:
-                id_range = range(int(atomids.split('-')[0]), int(atomids.split('-')[1])+1)
+                id_range = list(range(int(atomids.split('-')[0]), int(atomids.split('-')[1])+1))
             else:
                 id_range = [int(id) for id in id_range[0].split(',') if id!='']
             if count_H == '':
@@ -374,7 +378,7 @@ class InChI:
         # create dictionary with number of each atom
         dict_atom_count = {}
         for atomid in self.atoms:
-            if not dict_atom_count.has_key(self.atoms[atomid]['symbol']):
+            if self.atoms[atomid]['symbol'] not in dict_atom_count:
                 dict_atom_count[self.atoms[atomid]['symbol']] = 1
             else:
                 dict_atom_count[self.atoms[atomid]['symbol']] += 1
@@ -411,7 +415,7 @@ class InChI:
         """
         atom_length = len(self.atoms)
         for id in self.hydrogens:
-            if self.hydrogens[id].has_key('charge'):
+            if 'charge' in self.hydrogens[id]:
                 self.atoms[int(id)+atom_length] = {'isotope': self.hydrogens[id]['massnumber'],
                                                    'symbol': 'H',
                                                    'charge': self.hydrogens[id]['charge'],

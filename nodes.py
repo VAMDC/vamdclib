@@ -4,15 +4,26 @@ This module defines classes and methods to manage data associated with VAMDC nod
 functionality to retrieve a list of registered VAMDC nodes and to handle data such as urls of these
 nodes.
 """
+import sys
+import os
 
-try:
-    from registry import *
-except:
-    print "Suds package not available. Load Vamdc-Nodes from static file"
-    from local_registry import *
-import query as q
-import request as r
-        
+if sys.version_info[0] == 3:
+    try:
+        from .registry import *
+    except:
+        print("Suds package not available. Load Vamdc-Nodes from static file")
+        from .local_registry import *
+    from . import query as q
+    from . import request as r
+else:
+    try:
+        from registry import *
+    except:
+        print("Suds package not available. Load Vamdc-Nodes from static file")
+        from local_registry import *
+    import query as q
+    import request as r
+
 
 class Nodelist(object):
     """
@@ -34,7 +45,7 @@ class Nodelist(object):
         """
         returnstring = ""
         for node in self.nodes:
-            returnstring +="%s\n" % node.name
+            returnstring += "%s\n" % node.name
 
         return returnstring
 
@@ -42,7 +53,6 @@ class Nodelist(object):
         """
         Return a nodes.Node instance for the given ivo-identifier. 
         """
-
         for node in self.nodes:
             if node.identifier == identifier:
                 return node
@@ -61,18 +71,17 @@ class Nodelist(object):
         """
         nodes_match = []
         for node in self.nodes:
-           if searchstring in node.identifier or searchstring in node.name:
-               nodes_match.append(node)
+            if searchstring in node.identifier or searchstring in node.name:
+                nodes_match.append(node)
         if len(nodes_match) == 1:
-           return nodes_match[0]
+            return nodes_match[0]
         else:
-           return nodes_match
+            return nodes_match
 
     def __iter__(self):
         return self.nodes.__iter__()
+        
 
-         
- 
 class Node(object):
     """
     This class contains informations and methods associated with one (VAMDC) database node,
@@ -82,10 +91,10 @@ class Node(object):
     :ivar url: Url of the VAMDC node 
     :ivar identifier: IVO-Identifier of the Node
     """
-    def __init__(self, name, url=None, referenceUrl = None, identifier = None , maintainer = None, returnables = None):
-        self.name=name
-        self.url=url
-        self.referenceUrl=referenceUrl
+    def __init__(self, name, url=None, referenceUrl=None, identifier=None , maintainer=None, returnables=None):
+        self.name = name
+        self.url = url
+        self.referenceUrl = referenceUrl
         self.identifier = identifier
         self.maintainer = maintainer
         self.returnables = returnables
@@ -132,14 +141,14 @@ class Node(object):
                 self.get_species()
                 
         try:
-            print "List of Atoms: "
+            print("List of Atoms: ")
             for atom in self.Atoms:
                 print("%s" % self.Atoms[atom])
     
-            print "List of Molecules: "
+            print("List of Molecules: ")
             for molecule in self.Molecules:
                 print("%s" % self.Molecules[molecule])
 
-        except Exception, e:
-            print "Could not retrieve list of species: %s" % e
+        except Exception as e:
+            print("Could not retrieve list of species: %s" % e)
             
