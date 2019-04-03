@@ -10,7 +10,7 @@ NODELIST = [{'identifier': 'ivo://vamdc/dijon-methane-lines',
              'url': u'http://vamdc.icb.cnrs.fr/mecasda-12.07/tap/'},
             {'identifier': 'ivo://vamdc/cdms/vamdc-tap-dev',
              'name': 'CDMS: VAMDC-TAP service (xsams 1.0)',
-             'url': u'http://cdms.ph1.uni-koeln.de/cdms/tap/'},
+             'url': u'https://cdms.astro.uni-koeln.de/cdms/tap/'},
             {'identifier': 'ivo://vamdc/UDFA',
              'name': 'UMIST Database for Astrochemistry',
              'url': u'http://star.pst.qub.ac.uk/sne/umist3/tap/'},
@@ -40,7 +40,7 @@ NODELIST = [{'identifier': 'ivo://vamdc/dijon-methane-lines',
              'url': u'http://dev.vamdc.org/kida/tapservice_12_07/TAP/'},
             {'identifier': 'ivo://vamdc/jpl/vamdc-tap-dev',
              'name': 'JPL: VAMDC-TAP service (xsams 1.0)',
-             'url': u'http://cdms.ph1.uni-koeln.de/jpl/tap/'},
+             'url': u'https://cdms.astro.uni-koeln.de/jpl/tap/'},
             {'identifier': 'ivo://vamdc/TOPbase/tap-xsams-12.07',
              'name': 'TOPbase : VAMDC-TAP interface (12.07 version)',
              'url': u'http://topbase.obspm.fr/12.07/vamdc/tap/'},
@@ -73,4 +73,4 @@ def getNodeList():
 
 
 if __name__ == '__main__':
-    print getNodeList()
+    print(getNodeList())

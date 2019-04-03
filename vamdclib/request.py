@@ -4,6 +4,10 @@ This module defines classes which define and perform requests to individual VAMD
 if a request has been performed.
 """
 
+import sys
+import os
+import ssl
+
 try:
     from lxml import objectify
     is_available_xml_objectify = True
@@ -11,15 +15,29 @@ except ImportError:
     is_available_xml_objectify = False
  
 from xml.etree import ElementTree
-import urllib2
 
-from settings import *
-import query as q
-import results as r
-import nodes
+if sys.version_info[0] == 3:
+    import urllib.parse
+    urllib2 = urllib.parse
+    from urllib.parse import urlparse
+    from http.client import HTTPConnection, HTTPSConnection, urlsplit, HTTPException, socket
+    unicode = str
+else:
+    from urlparse import urlparse
+    import urllib2
+    from httplib import HTTPConnection, HTTPSConnection, urlsplit, HTTPException, socket
 
-from urlparse import urlparse
-from httplib import HTTPConnection, HTTPSConnection, urlsplit, HTTPException, socket
+if sys.version_info[0] == 3:
+    from .settings import *
+    from . import query as q
+    from . import results as r
+    from . import nodes
+else:
+    from settings import *
+    import query as q
+    import results as r
+    import nodes
+
 
 from dateutil.parser import parse
 
@@ -39,15 +57,18 @@ class Request(object):
     """
     A Request instance represents one request to a specified VAMDC database node. 
     """
-    def __init__(self, node = None, query = None):
+    def __init__(self, node=None, query=None, verifyhttps=True):
         """
-        Initialize a request instance. 
+        Initialize a request instance.
 
         node: Database-Node to which the request will be sent
         query: Query which will be performed on the database.
+        verifyhttps: Modifies the HTTPSConnection context to skip certificate verification if desired
         """
         self.status = 0
         self.reason = "INIT"
+        self.verifyhttps = verifyhttps
+        self.baseurl = None
 
         if node != None:
             self.setnode(node)
@@ -64,11 +85,11 @@ class Request(object):
         self.status = 0
         self.reason = "INIT"
 
-        if type(node) == nodes.Node:
+        try:
             self.node = node
             
             if not hasattr(self.node,'url') or len(self.node.url)==0:
-#                print "Warning: Url of this node is empty!"
+                #print("Warning: Url of this node is empty!")
                 pass
             else:
                 self.baseurl = self.node.url
@@ -76,6 +97,9 @@ class Request(object):
                     self.baseurl+='sync?'
                 else:
                     self.baseurl+='/sync?'
+        except:
+            print("There was a problem setting the node (%s)" % node)
+            raise
 
     def setbaseurl(self, baseurl):
         """
@@ -104,8 +128,8 @@ class Request(object):
             self.query = q.Query(Query = query)
             self.__setquerypath()
         else:
-#            print type(query)
-#            print "Warning: this is not a query object"
+            #print(type(query))
+            #print("Warning: this is not a query object")
             pass
         
 
@@ -119,7 +143,7 @@ class Request(object):
                                                                      urllib2.quote(self.query.Query))
         
 
-    def dorequest(self, timeout = TIMEOUT, HttpMethod = "POST", parsexsams = True):
+    def dorequest(self, timeout=TIMEOUT, HttpMethod="POST", parsexsams=True):
         """
         Sends the request to the database node and returns a result.Result instance. The
         request uses 'POST' requests by default. If the request fails or if stated in the parameter 'HttpMethod',
@@ -133,9 +157,12 @@ class Request(object):
         urlobj = urlsplit(url)
         
         if urlobj.scheme == 'https':
-            conn = HTTPSConnection(urlobj.netloc, timeout = timeout)
+            if self.verifyhttps:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout)
+            else:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout, context=ssl._create_unverified_context())
         else:
-            conn = HTTPConnection(urlobj.netloc, timeout = timeout)
+            conn = HTTPConnection(urlobj.netloc, timeout=timeout)
         conn.putrequest(HttpMethod, urlobj.path+"?"+urlobj.query)
         conn.endheaders()
         
@@ -156,7 +183,7 @@ class Request(object):
                 result.Content = res.read()
             elif res.status == 400 and HttpMethod == 'POST':
                 # Try to use http-method: GET
-                result = self.dorequest( HttpMethod = 'GET', parsexsams = parsexsams)
+                result = self.dorequest(HttpMethod='GET', parsexsams=parsexsams)
             else:
                 result = None
         else:
@@ -168,7 +195,7 @@ class Request(object):
                 result.populate_model()
             elif res.status == 400 and HttpMethod == 'POST':
                 # Try to use http-method: GET
-                result = self.dorequest( HttpMethod = 'GET', parsexsams = parsexsams)
+                result = self.dorequest(HttpMethod='GET', parsexsams=parsexsams)
             else:
                 result = None
 
@@ -186,15 +213,18 @@ class Request(object):
         urlobj = urlsplit(url)
        
         if urlobj.scheme == 'https':
-            conn = HTTPSConnection(urlobj.netloc, timeout = timeout)
+            if self.verifyhttps:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout)
+            else:
+                conn = HTTPSConnection(urlobj.netloc, timeout=timeout, context=ssl._create_unverified_context())
         else:
-            conn = HTTPConnection(urlobj.netloc, timeout = timeout)
+            conn = HTTPConnection(urlobj.netloc, timeout=timeout)
         conn.putrequest("HEAD", urlobj.path+"?"+urlobj.query)
         conn.endheaders()
         
         try:
             res = conn.getresponse()
-        except socket.timeout, e:
+        except socket.timeout as e:
             self.status = 408
             self.reason = "Socket timeout"
             raise TimeOutError
@@ -214,7 +244,7 @@ class Request(object):
                             ("vamdc-count-radiative",0),
                             ("vamdc-count-atoms",0)]
         elif res.status == 408:
-            print "TIMEOUT"
+            print("TIMEOUT")
             headers =  [("vamdc-count-species",0),
                             ("vamdc-count-states",0),
                             ("vamdc-truncated",0),
@@ -224,7 +254,7 @@ class Request(object):
                             ("vamdc-count-radiative",0),
                             ("vamdc-count-atoms",0)]            
         else:
-            print "STATUS: %d" % res.status
+            print("STATUS: %d" % res.status)
             headers =  [("vamdc-count-species",0),
                             ("vamdc-count-states",0),
                             ("vamdc-truncated",0),
@@ -245,12 +275,12 @@ class Request(object):
         if not self.status == 200:
             self.doheadrequest()
 
-        if self.headers.has_key('last-modified'):
+        if 'last-modified' in self.headers:
             try:
                 self.lastmodified = parse(self.headers['last-modified'])
-            except Exception, e:
-                print "Could not parse date %s" % self.headers['last-modified']
-                print e
+            except Exception as e:
+                print("Could not parse date %s" % self.headers['last-modified'])
+                print(e)
         else:
             if self.status == 204:
                 raise NoContentError('requets.getlastmodified')
