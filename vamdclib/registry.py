@@ -78,7 +78,7 @@ def getNodeList():
         nameurls.append({
             'name': node.title,
             'url': url,
-            'referenceUrl': node.referenceUrl,
+            'referenceUrl': node.referenceUrl if "referenceUrl" in dir(node) else None,
             'identifier': node.identifier,
             'maintainer': node.maintainer,
             'returnables': node.returnables['returnable']})
