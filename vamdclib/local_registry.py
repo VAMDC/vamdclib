@@ -66,6 +66,12 @@ NODELIST = [{'identifier': 'ivo://vamdc/dijon-methane-lines',
              'name': 'RADAM',
              'url': u'http://193.55.130.154/tap/'}]
 
+for node in NODELIST:
+    # HACK: these are all _strictly required_ but none are included above...
+    node['referenceUrl'] = node['url']
+    node['maintainer'] = 'none'
+    node['returnables'] = {'returnable': None}
+
 def getNodeList():
 
     return NODELIST
